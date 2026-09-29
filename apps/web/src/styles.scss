@@ -1,0 +1,26 @@
+:root {
+  --color-ink: #0e1116;
+  --color-accent: #b08d57;
+  --color-bg: #fafaf8;
+  --color-surface: #fff;
+  --color-muted: #5b6470;
+  --color-border: #e3e6ea;
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--color-ink);
+  background: var(--color-bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input {
+  font: inherit;
+}
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}

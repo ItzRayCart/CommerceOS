@@ -1,0 +1,42 @@
+{
+  "name": "commerceos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "packages/shared"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -k \"npm run dev -w @commerceos/api\" \"npm run start -w @commerceos/web\"",
+    "build": "npm run build -w @commerceos/shared && npm run build -w @commerceos/api && npm run build -w @commerceos/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e -w @commerceos/web",
+    "seed": "npm run seed -w @commerceos/api",
+    "seed:reset": "npm run seed:reset -w @commerceos/api",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "@eslint/js": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "concurrently": "^9.0.0",
+    "eslint": "^9.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^16.0.0",
+    "prettier": "^3.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,js,json,md,scss,html,yaml,yml}": "prettier --write"
+  }
+}
