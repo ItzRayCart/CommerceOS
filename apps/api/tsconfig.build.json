@@ -1,6 +1,15 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "outDir": "dist", "rootDir": "src", "declaration": true },
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "paths": {
+      "@api/*": ["src/*"],
+      "@shared/*": ["../../packages/shared/dist/*"],
+      "@commerceos/shared": ["../../packages/shared/dist/index.d.ts"]
+    }
+  },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

@@ -12,7 +12,11 @@
     "resolveJsonModule": true,
     "types": ["node", "jest"],
     "baseUrl": ".",
-    "paths": { "@api/*": ["src/*"], "@shared/*": ["../../packages/shared/src/*"] }
+    "paths": {
+      "@api/*": ["src/*"],
+      "@shared/*": ["../../packages/shared/src/*"],
+      "@commerceos/shared": ["../../packages/shared/src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts", "test/**/*.ts", "seed/**/*.ts"]
 }

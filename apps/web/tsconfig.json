@@ -12,7 +12,11 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "paths": { "@web/*": ["./src/app/*"], "@shared/*": ["../../packages/shared/src/*"] }
+    "paths": {
+      "@web/*": ["./src/app/*"],
+      "@shared/*": ["../../packages/shared/src/*"],
+      "@commerceos/shared": ["../../packages/shared/src/index.ts"]
+    }
   },
   "angularCompilerOptions": {
     "strictInjectionParameters": true,
