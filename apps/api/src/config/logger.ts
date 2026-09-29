@@ -9,6 +9,8 @@ export function createLogger(level: string): Logger {
         'req.headers.authorization',
         'req.headers.cookie',
         'req.body.password',
+        'req.body.currentPassword',
+        'req.body.newPassword',
         'req.body.token',
         'req.body.cardNumber',
         'req.body.cvc',

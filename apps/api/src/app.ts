@@ -18,6 +18,8 @@ import { asyncHandler } from '@api/common/middleware/async-handler.js';
 import { pingDatabase } from '@api/config/db.js';
 import type { Env } from '@api/config/env.js';
 import { systemRouter } from '@api/modules/system/system.routes.js';
+import { createAdminAuthRouter, createAuthRouter } from '@api/modules/auth/auth.routes.js';
+import { createUsersRouter } from '@api/modules/users/users.routes.js';
 
 const openApi = parse(readFileSync(resolve(process.cwd(), 'docs/openapi.yaml'), 'utf8')) as object;
 
@@ -66,6 +68,10 @@ export function createApp(config: Env, logger: Logger): Express {
   app.use(cookieParser());
   app.use(compression());
   app.use(rejectNoSqlOperators);
+  app.use(['/api/v1/auth', '/api/v1/me'], (_request, response, next) => {
+    response.setHeader('Cache-Control', 'no-store');
+    next();
+  });
 
   app.get(
     '/health',
@@ -76,6 +82,9 @@ export function createApp(config: Env, logger: Logger): Express {
   );
   app.get('/api/docs/openapi.json', (_request, response) => response.json(openApi));
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApi));
+  app.use('/api/v1/auth', createAuthRouter(config, logger));
+  app.use('/api/v1/admin/auth', createAdminAuthRouter(config));
+  app.use('/api/v1/me', createUsersRouter(config));
   app.use('/api/v1/system', systemRouter);
   app.use(notFound);
   app.use(errorHandler);

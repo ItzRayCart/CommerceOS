@@ -35,6 +35,13 @@ const envSchema = z
         message: 'Must be true in production',
       });
     }
+    if (value.NODE_ENV === 'production' && value.MAIL_TRANSPORT !== 'smtp') {
+      context.addIssue({
+        code: 'custom',
+        path: ['MAIL_TRANSPORT'],
+        message: 'SMTP is required in production',
+      });
+    }
     if (value.MAIL_TRANSPORT === 'smtp' && (!value.SMTP_HOST || !value.SMTP_PORT)) {
       context.addIssue({
         code: 'custom',

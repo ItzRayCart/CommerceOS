@@ -5,6 +5,7 @@ module.exports = {
   moduleNameMapper: {
     '^@api/(.*)\\.js$': '<rootDir>/src/$1',
     '^@commerceos/shared$': '<rootDir>/../../packages/shared/src/index.ts',
+    '^\\./(enums|dto)\\.js$': '<rootDir>/../../packages/shared/src/$1.ts',
   },
   collectCoverageFrom: ['src/**/*.ts', '!src/server.ts'],
   coverageDirectory: 'coverage',

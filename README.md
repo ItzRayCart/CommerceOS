@@ -1,6 +1,6 @@
 # CommerceOS
 
-CommerceOS is an Angular storefront and admin console backed by an Express REST API and MongoDB. The current implementation is the initial Phase 0 foundation; commerce features and seed data are scheduled for later phases.
+CommerceOS is an Angular storefront and admin console backed by an Express REST API and MongoDB. The foundation and authentication/session subsystem are implemented; commerce features and seed data are scheduled for later phases.
 
 ## Architecture
 
@@ -9,12 +9,12 @@ Angular SPA (apps/web) → /api/v1 → Express (apps/api) → MongoDB replica se
                                 ↘ shared DTOs/enums (packages/shared)
 ```
 
-The API uses route → controller → service → model/mapper layers. `createApp()` has no listener; `server.ts` validates the environment, connects MongoDB, starts the HTTP server and closes it on shutdown. The sample `/api/v1/system/echo` route demonstrates Zod validation, thin controller, service, mapper and the standard response/error envelopes.
+The API uses route → controller → service → model/mapper layers. `createApp()` has no listener; `server.ts` validates the environment, connects MongoDB, starts the HTTP server and closes it on shutdown. Authentication uses a 15-minute bearer access token and a rotating seven-day HttpOnly refresh cookie. The browser keeps the access token only in memory and attempts a cookie refresh on startup.
 
 ## Prerequisites
 
 - Node.js 24 LTS recommended (22.12+ is supported by Angular 21); npm 11.
-- Docker Engine with Compose for the container workflow, or a local MongoDB 7 replica set for `npm run dev`.
+- Docker Engine with Compose for the container workflow, or a local MongoDB 7 replica set for `npm run dev`. A replica set is required for atomic password-reset transactions.
 - Copy `.env.example` to `.env`. For production, set a unique `JWT_ACCESS_SECRET` of at least 32 characters and enable `COOKIE_SECURE=true`. Development generates an ephemeral secret when the variable is blank.
 
 ## Quick start
@@ -37,6 +37,28 @@ npm run dev
 
 The Angular dev server proxies `/api` to the API. The local MongoDB URI in `.env.example` uses `directConnection=true` so it can reach a replica-set container whose advertised host is `mongo`.
 
+### Try authentication yourself
+
+Open `http://localhost:4200/register` to create a customer account, then visit `/login` and `/account`. Passwords need at least eight characters, an uppercase letter, a lowercase letter, and a digit, and cannot be one of the common passwords blocked by the API. Public registration always creates a customer; sending `role: "admin"` has no effect. The API contract and response schemas are at `/api/docs`.
+
+With the API at `http://localhost:4000`, this PowerShell example runs the complete session sequence and preserves the refresh cookie in `$authSession`:
+
+```powershell
+$base = 'http://localhost:4000/api/v1'
+$email = "tester-$(Get-Random)@example.com"
+$registration = @{ email=$email; password='ExamplePassword9'; firstName='Test'; lastName='Customer' } | ConvertTo-Json
+$registered = Invoke-RestMethod "$base/auth/register" -Method Post -ContentType 'application/json' -Body $registration -SessionVariable authSession
+$login = Invoke-RestMethod "$base/auth/login" -Method Post -ContentType 'application/json' -Body (@{ email=$email; password='ExamplePassword9' } | ConvertTo-Json) -WebSession $authSession
+$refreshed = Invoke-RestMethod "$base/auth/refresh" -Method Post -ContentType 'application/json' -Body '{}' -WebSession $authSession
+$oldRefresh = ($authSession.Cookies.GetCookies("$base/auth/refresh") | Where-Object Name -eq 'refreshToken').Value
+$me = Invoke-RestMethod "$base/auth/me" -Headers @{ Authorization="Bearer $($refreshed.data.accessToken)" }
+Invoke-RestMethod "$base/auth/logout" -Method Post -ContentType 'application/json' -Body '{}' -Headers @{ Authorization="Bearer $($refreshed.data.accessToken)" } -WebSession $authSession
+# Expected: HTTP 401; the old refresh token captured before logout was revoked.
+Invoke-RestMethod "$base/auth/refresh" -Method Post -ContentType 'application/json' -Body '{}' -Headers @{ Cookie="refreshToken=$oldRefresh" }
+```
+
+The API limits authentication requests to 10 per 15 minutes per IP, so use a fresh interval if repeated manual attempts return HTTP 429. Password-reset requests always return HTTP 202. In local development `MAIL_TRANSPORT=console` writes the reset link to the API log. For production set `MAIL_TRANSPORT=smtp`, `SMTP_HOST`, `SMTP_PORT`, and, when the server requires authentication, `SMTP_USER` and `SMTP_PASS`. Production also requires `COOKIE_SECURE=true` and a nonblank `JWT_ACCESS_SECRET` of at least 32 characters.
+
 ## Workspaces and scripts
 
 | Workspace         | Purpose                                                                               |
@@ -53,4 +75,4 @@ See `.env.example` for all variables. `MONGODB_URI`, CORS origins, web base URL,
 
 ## Testing and current scope
 
-The foundation includes a validated sample API route test and an Angular shell test. Docker is required to verify the full Phase 0 clean-clone exit criterion. Seed accounts and credentials will be documented when the Phase 2/7 seed work is delivered. See `IMPLEMENTATION_CHECKLIST.md` for phase gates and `DECISIONS.md` for version and design decisions.
+Run `npm run lint`, `npm run build`, and `npm test` from the repository root, matching GitHub Actions. API integration tests use `mongodb-memory-server` and may download a MongoDB binary on the first run; they do not need a separately running MongoDB. Docker is required to verify the full Phase 0 clean-clone exit criterion. Seed accounts and credentials will be documented when the Phase 2/7 seed work is delivered. See `IMPLEMENTATION_CHECKLIST.md` for phase gates and `DECISIONS.md` for version and design decisions.

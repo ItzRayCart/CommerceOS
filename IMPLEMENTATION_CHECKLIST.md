@@ -33,10 +33,10 @@ Implementation sequence requested by the project owner:
 
 ## Phase 1 — Auth and users
 
-- [ ] Model users, refresh tokens, password resets, addresses, indexes, password policy, and hashed tokens.
-- [ ] Implement register/login/refresh/logout/me, forgot/reset password, profile/password/address endpoints, opaque refresh rotation and family reuse detection.
-- [ ] Enforce auth and rate limits; router-level admin RBAC; permission map; customer ownership/IDOR safeguards.
-- [ ] Build Angular auth/account pages, memory-only AuthStore, bootstrap refresh, single-flight retry interceptor, guards, and form states.
+- [x] Model users, refresh tokens, password resets, addresses, indexes, password policy, and hashed tokens.
+- [x] Implement register/login/refresh/logout/me, forgot/reset password, profile/password/address endpoints, opaque refresh rotation and family reuse detection.
+- [x] Enforce auth and rate limits; router-level admin RBAC; permission map; customer ownership/IDOR safeguards for the account resources that exist.
+- [x] Build Angular auth/account pages, memory-only AuthStore, bootstrap refresh, single-flight retry interceptor, guards, and form states.
 - [ ] Test AC-AUTH-01..07, applicable AC-RBAC-01..04, and E2E journeys 1 and 6. Track order ownership and admin-account mutations for the phases that create those resources (see dependencies below).
 - [ ] Exit: Phase 1 endpoints and UI pass API/E2E gates; RBAC behavior implemented for the resources that exist.
 

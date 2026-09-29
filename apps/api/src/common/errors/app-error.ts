@@ -27,3 +27,21 @@ export class BadRequestError extends AppError {
     super(400, 'BAD_REQUEST', message);
   }
 }
+
+export class UnauthenticatedError extends AppError {
+  constructor(message = 'Authentication required', code = 'UNAUTHENTICATED') {
+    super(401, code, message);
+  }
+}
+
+export class ForbiddenError extends AppError {
+  constructor() {
+    super(403, 'FORBIDDEN', 'Insufficient permissions');
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string, field?: string) {
+    super(409, 'CONFLICT', message, field ? { field } : undefined);
+  }
+}
