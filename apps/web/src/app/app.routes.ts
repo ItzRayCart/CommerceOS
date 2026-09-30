@@ -40,5 +40,61 @@ export const routes: Routes = [
       import('@web/layout/storefront-shell.component').then(
         (module) => module.StorefrontShellComponent,
       ),
+    children: [
+      {
+        path: 'products/:slug',
+        loadComponent: () =>
+          import('@web/features/catalog/product-page.component').then(
+            (m) => m.ProductPageComponent,
+          ),
+      },
+      {
+        path: 'wishlist',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('@web/features/catalog/wishlist-page.component').then(
+            (m) => m.WishlistPageComponent,
+          ),
+      },
+      {
+        path: 'cart',
+        loadComponent: () =>
+          import('@web/features/cart/cart-page.component').then((m) => m.CartPageComponent),
+      },
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('@web/features/catalog/home-page.component').then((m) => m.HomePageComponent),
+      },
+      {
+        path: 'shop',
+        loadComponent: () =>
+          import('@web/features/catalog/catalog-page.component').then(
+            (m) => m.CatalogPageComponent,
+          ),
+      },
+      {
+        path: 'shop/:categorySlug',
+        loadComponent: () =>
+          import('@web/features/catalog/catalog-page.component').then(
+            (m) => m.CatalogPageComponent,
+          ),
+      },
+      {
+        path: 'search',
+        loadComponent: () =>
+          import('@web/features/catalog/catalog-page.component').then(
+            (m) => m.CatalogPageComponent,
+          ),
+      },
+      {
+        path: '**',
+        loadComponent: () =>
+          import('@web/features/catalog/not-found-page.component').then(
+            (m) => m.NotFoundPageComponent,
+          ),
+      },
+    ],
   },
 ];

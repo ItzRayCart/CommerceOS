@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { AccountApi } from '@web/auth/account.api';
 import type { AddressView } from '@web/auth/account.api';
 import { AuthStore } from '@web/core/auth-session';
+import { errorMessage } from '@web/core/api-error';
 
 function emptyAddress() {
   return {
@@ -288,8 +289,10 @@ export class AccountPageComponent implements OnInit {
     try {
       await action();
       this.notice.set(success);
-    } catch {
-      this.actionError.set('The change could not be saved. Check the fields and try again.');
+    } catch (error) {
+      this.actionError.set(
+        errorMessage(error, 'The change could not be saved. Check the fields and try again.'),
+      );
     } finally {
       this.busy.set(false);
     }

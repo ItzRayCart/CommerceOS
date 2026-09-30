@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: CommerceOS API
   version: 0.1.0
-  description: Foundation and authentication/session contract.
+  description: Authentication, public catalogue, wishlist, and cart contract.
 servers:
   - url: /api/v1
 paths:
@@ -262,11 +262,344 @@ paths:
                         const: ok
         '500':
           $ref: '#/components/responses/InternalError'
+  /settings/public:
+    get:
+      tags: [Catalogue]
+      summary: Public store profile, currency, shipping, theme and feature flags
+      responses:
+        '200': { $ref: '#/components/responses/Settings' }
+        default: { $ref: '#/components/responses/Error' }
+  /categories:
+    get:
+      tags: [Catalogue]
+      summary: Active category tree and visible product counts
+      responses:
+        '200': { $ref: '#/components/responses/Categories' }
+        default: { $ref: '#/components/responses/Error' }
+  /categories/{slug}:
+    get:
+      tags: [Catalogue]
+      summary: Active category, children and breadcrumbs
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '200': { $ref: '#/components/responses/Category' }
+        '404': { $ref: '#/components/responses/Error' }
+  /products:
+    get:
+      tags: [Catalogue]
+      summary: Paginated, filtered product search
+      description: Option filters use options[Color]=Graphite. sort=relevance requires q.
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: minPrice, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: maxPrice, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: inStock, in: query, schema: { type: boolean } }
+        - { name: rating, in: query, schema: { type: number, minimum: 0, maximum: 5 } }
+        - { name: featured, in: query, schema: { type: boolean } }
+        - { name: tags, in: query, schema: { type: string } }
+        - { name: 'options[Color]', in: query, schema: { type: string } }
+        - { name: includeFacets, in: query, schema: { type: boolean } }
+        - {
+            name: sort,
+            in: query,
+            schema:
+              {
+                type: string,
+                enum: [relevance, -createdAt, price, -price, -soldCount, -ratingAverage, name],
+              },
+          }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/Limit' }
+      responses:
+        '200': { $ref: '#/components/responses/Products' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /products/suggest:
+    get:
+      tags: [Catalogue]
+      summary: Up to six product and category search suggestions
+      parameters: [{ name: q, in: query, required: true, schema: { type: string, minLength: 2 } }]
+      responses:
+        '200': { $ref: '#/components/responses/Suggestions' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /products/{slug}:
+    get:
+      tags: [Catalogue]
+      summary: Visible product with active variants, gallery and specifications
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '200': { $ref: '#/components/responses/Product' }
+        '404': { $ref: '#/components/responses/Error' }
+  /products/{slug}/related:
+    get:
+      tags: [Catalogue]
+      summary: Up to eight related visible products
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '200': { $ref: '#/components/responses/Products' }
+        '404': { $ref: '#/components/responses/Error' }
+  /wishlist:
+    get:
+      tags: [Wishlist]
+      summary: Paginated saved products
+      security: [{ bearerAuth: [] }]
+      parameters:
+        [{ $ref: '#/components/parameters/Page' }, { $ref: '#/components/parameters/Limit' }]
+      responses:
+        '200': { $ref: '#/components/responses/Products' }
+        '401': { $ref: '#/components/responses/Error' }
+  /wishlist/{productId}:
+    parameters: [{ $ref: '#/components/parameters/ProductId' }]
+    post:
+      tags: [Wishlist]
+      summary: Save a visible product, idempotently
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Product saved }
+        '401': { $ref: '#/components/responses/Error' }
+        '404': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Wishlist]
+      summary: Remove a saved product
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Product removed }
+        '401': { $ref: '#/components/responses/Error' }
+  /cart/price:
+    post:
+      tags: [Cart]
+      summary: Quote guest items against current catalogue prices and stock
+      requestBody: { $ref: '#/components/requestBodies/CartItems' }
+      responses:
+        '200': { $ref: '#/components/responses/Cart' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /cart:
+    get:
+      tags: [Cart]
+      summary: Read and reprice own cart
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Cart' }
+        '401': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Cart]
+      summary: Empty own cart
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Cart cleared }
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add an item, enforcing quantity and stock
+      security: [{ bearerAuth: [] }]
+      requestBody: { $ref: '#/components/requestBodies/CartItem' }
+      responses:
+        '201': { $ref: '#/components/responses/Cart' }
+        '409': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /cart/items/{itemId}:
+    parameters: [{ $ref: '#/components/parameters/ItemId' }]
+    patch:
+      tags: [Cart]
+      summary: Set item quantity
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [quantity],
+                    properties: { quantity: { type: integer, minimum: 1, maximum: 10 } },
+                  },
+              },
+          }
+      responses:
+        '200': { $ref: '#/components/responses/Cart' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+    delete:
+      tags: [Cart]
+      summary: Remove an item
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Item removed }
+        '404': { $ref: '#/components/responses/Error' }
+  /cart/merge:
+    post:
+      tags: [Cart]
+      summary: Merge guest lines with own cart, capped by stock and ten units
+      security: [{ bearerAuth: [] }]
+      requestBody: { $ref: '#/components/requestBodies/CartItems' }
+      responses:
+        '200': { $ref: '#/components/responses/Cart' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /cart/discount:
+    post:
+      tags: [Cart]
+      summary: Apply one discount code
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        {
+          required: true,
+          content:
+            {
+              application/json:
+                {
+                  schema:
+                    { type: object, required: [code], properties: { code: { type: string } } },
+                },
+            },
+        }
+      responses:
+        '200': { $ref: '#/components/responses/Cart' }
+        '422': { $ref: '#/components/responses/Error' }
+    delete:
+      tags: [Cart]
+      summary: Remove discount code
+      security: [{ bearerAuth: [] }]
+      responses:
+        '204': { description: Discount removed }
 components:
+  parameters:
+    Slug: { name: slug, in: path, required: true, schema: { type: string } }
+    ProductId:
+      {
+        name: productId,
+        in: path,
+        required: true,
+        schema: { type: string, pattern: '^[a-fA-F0-9]{24}$' },
+      }
+    ItemId:
+      {
+        name: itemId,
+        in: path,
+        required: true,
+        schema: { type: string, pattern: '^[a-fA-F0-9]{24}$' },
+      }
+    Page: { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+    Limit:
+      { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 12 } }
+  requestBodies:
+    CartItem:
+      {
+        required: true,
+        content: { application/json: { schema: { $ref: '#/components/schemas/CartItemInput' } } },
+      }
+    CartItems:
+      {
+        required: true,
+        content:
+          {
+            application/json:
+              {
+                schema:
+                  {
+                    type: object,
+                    required: [items],
+                    properties:
+                      {
+                        items:
+                          { type: array, items: { $ref: '#/components/schemas/CartItemInput' } },
+                      },
+                  },
+              },
+          },
+      }
   securitySchemes:
     bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
     refreshCookie: { type: apiKey, in: cookie, name: refreshToken }
   schemas:
+    CartItemInput:
+      type: object
+      required: [productId, variantId, quantity]
+      additionalProperties: false
+      properties:
+        productId: { type: string, pattern: '^[a-fA-F0-9]{24}$' }
+        variantId: { type: string, pattern: '^[a-fA-F0-9]{24}$' }
+        quantity: { type: integer, minimum: 1, maximum: 10 }
+    CartLine:
+      type: object
+      properties:
+        id: { type: string }
+        productId: { type: string }
+        variantId: { type: string }
+        quantity: { type: integer }
+        name: { type: string }
+        slug: { type: string }
+        sku: { type: string }
+        variantLabel: { type: string }
+        image: { type: string }
+        unitPrice: { type: integer, description: Current server price in minor units }
+        lineTotal: { type: integer }
+        available: { type: integer }
+        unavailable: { type: boolean }
+        priceChanged: { type: boolean }
+    CartQuote:
+      type: object
+      properties:
+        lines: { type: array, items: { $ref: '#/components/schemas/CartLine' } }
+        discountCode: { type: [string, 'null'] }
+        discountError: { type: [object, 'null'] }
+        currency: { type: string }
+        shippingMethod: { type: [object, 'null'] }
+        totals:
+          type: object
+          properties:
+            subtotal: { type: integer }
+            discount: { type: integer }
+            shipping: { type: integer }
+            tax: { type: integer }
+            total: { type: integer }
+        canCheckout: { type: boolean }
+    ProductSummary:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        primaryImage: { type: [object, 'null'] }
+        priceFrom: { type: integer }
+        compareAtFrom: { type: [integer, 'null'] }
+        inStock: { type: boolean }
+        ratingAverage: { type: number }
+        ratingCount: { type: integer }
+        category: { type: object }
+    ProductDetail:
+      allOf:
+        - { $ref: '#/components/schemas/ProductSummary' }
+        - type: object
+          properties:
+            description: { type: string }
+            brand: { type: string }
+            images: { type: array, items: { type: object } }
+            specs: { type: array, items: { type: object } }
+            optionDefinitions: { type: array, items: { type: object } }
+            variants: { type: array, items: { type: object } }
+            seo: { type: object }
+    Category:
+      type: object
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        description: { type: string }
+        image: { type: string }
+        parentId: { type: [string, 'null'] }
+        productCount: { type: integer }
+        children: { type: array, items: { type: object } }
+    PublicSettings:
+      type: object
+      properties:
+        store: { type: object }
+        currency: { type: object }
+        tax: { type: object }
+        shipping: { type: object }
+        inventory: { type: object }
+        theme: { type: object }
+        features: { type: object }
     RegisterInput:
       type: object
       required: [email, password, firstName, lastName]
@@ -356,6 +689,112 @@ components:
             requestId:
               type: string
   responses:
+    Cart:
+      description: Current cart quote
+      content:
+        {
+          application/json:
+            {
+              schema:
+                { type: object, properties: { data: { $ref: '#/components/schemas/CartQuote' } } },
+            },
+        }
+    Products:
+      description: Visible products with pagination metadata for list operations
+      content:
+        {
+          application/json:
+            {
+              schema:
+                {
+                  type: object,
+                  properties:
+                    {
+                      data: { type: array, items: { $ref: '#/components/schemas/ProductSummary' } },
+                      meta: { type: object },
+                    },
+                },
+            },
+        }
+    Product:
+      description: Visible product detail
+      content:
+        {
+          application/json:
+            {
+              schema:
+                {
+                  type: object,
+                  properties: { data: { $ref: '#/components/schemas/ProductDetail' } },
+                },
+            },
+        }
+    Categories:
+      description: Active categories
+      content:
+        {
+          application/json:
+            {
+              schema:
+                {
+                  type: object,
+                  properties:
+                    { data: { type: array, items: { $ref: '#/components/schemas/Category' } } },
+                },
+            },
+        }
+    Category:
+      description: Active category detail
+      content:
+        {
+          application/json:
+            {
+              schema:
+                { type: object, properties: { data: { $ref: '#/components/schemas/Category' } } },
+            },
+        }
+    Settings:
+      description: Public store settings
+      content:
+        {
+          application/json:
+            {
+              schema:
+                {
+                  type: object,
+                  properties: { data: { $ref: '#/components/schemas/PublicSettings' } },
+                },
+            },
+        }
+    Suggestions:
+      description: Product and category suggestions
+      content:
+        {
+          application/json:
+            {
+              schema:
+                {
+                  type: object,
+                  properties:
+                    {
+                      data:
+                        {
+                          type: array,
+                          items:
+                            {
+                              type: object,
+                              properties:
+                                {
+                                  type: { type: string },
+                                  name: { type: string },
+                                  slug: { type: string },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        }
     Error:
       description: Request rejected
       content:

@@ -1,6 +1,6 @@
 # CommerceOS implementation checklist
 
-Planning status: Phase 0 foundation implementation is in progress on `feat/phase-0-foundation`. Source: CommerceOS Engineering Specification v1.0, September 2026, especially Sections 0-12 and Appendix A. The specification's MUST and SHOULD scope remains in force; COULD work follows completed MUST/SHOULD work.
+Status as of 2026-09-29: foundation and authentication are present; storefront Batches A, B and C have implementation and integration coverage. Full Phase 0–3 exit gates remain open until every required check in those gates passes. Source: CommerceOS Engineering Specification v1.0, September 2026, especially Sections 0–12 and Appendix A. The specification's MUST and SHOULD scope remains in force; COULD work follows completed MUST/SHOULD work.
 
 ## Rules for every phase
 
@@ -43,17 +43,17 @@ Implementation sequence requested by the project owner:
 ## Phase 2 — Catalogue
 
 - [ ] Model settings, categories, products, variants, visibility, unique SKU/slug rules, denormalized price/stock/rating fields, and required indexes.
-- [ ] Implement public settings/category/product/list/suggest/related endpoints with search relevance, allow-listed sort, filters, facets, and pagination.
-- [ ] Build idempotent catalogue seed: category tree, approximately 30 products, variant and stock cases, branded local images, descriptive copy, initial settings.
-- [ ] Build home, catalogue, search, category, and product pages with URL state, variant deep links, gallery, metadata, and responsive states.
+- [x] Implement public settings/category/product/list/suggest/related endpoints with search relevance, allow-listed sort, filters, facets, and pagination.
+- [x] Build idempotent catalogue seed: category tree, approximately 30 products, variant and stock cases, branded local images, descriptive copy, initial settings.
+- [x] Build home, catalogue, search, category, and product pages with URL state, variant deep links, gallery, metadata, and responsive states.
 - [ ] Test AC-CAT-01..06, AC-PDP-01..03, BR-08/12/15, index-backed `explain()` without COLLSCAN, and Home/PDP Lighthouse targets.
 - [ ] Exit: all catalogue/PDP criteria pass, `explain()` gate passes, desktop Lighthouse Performance/Accessibility/Best Practices >= 90 on Home and PDP.
 
 ## Phase 3 — Cart and wishlist
 
-- [ ] Model server carts and wishlists; implement guest `/cart/price`, cart item/merge/discount endpoints and wishlist endpoints.
-- [ ] Reprice from database on read; report stock and price changes; cap quantities to stock and 10; keep guest cart local and merge on sign-in.
-- [ ] Build CartStore, WishlistStore, cart drawer/page, coupon UI, wishlist page, and live header counts.
+- [x] Model server carts and wishlists; implement guest `/cart/price`, cart item/merge/discount endpoints and wishlist endpoints.
+- [x] Reprice from database on read; report stock and price changes; cap quantities to stock and 10; keep guest cart local and merge on sign-in.
+- [x] Build CartStore, WishlistStore, cart drawer/page, coupon UI, wishlist page, and live header counts.
 - [ ] Test AC-CART-01..04, AC-WISH-01, BR-02/09, guest-to-user merge and unavailable-line behavior.
 - [ ] Exit: cart and wishlist acceptance and tests pass.
 

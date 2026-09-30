@@ -9,8 +9,8 @@
     "start": "node dist/server.js",
     "test": "jest --runInBand --coverage",
     "lint": "eslint src --ext .ts",
-    "seed": "tsx seed/seed.ts",
-    "seed:reset": "tsx seed/seed.ts --reset"
+    "seed": "tsx src/seed/run-seed.ts",
+    "seed:reset": "tsx src/seed/run-seed.ts --reset"
   },
   "dependencies": {
     "@commerceos/shared": "0.1.0",
