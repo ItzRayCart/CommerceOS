@@ -4,12 +4,14 @@ import { closeDatabase, connectDatabase } from '@api/config/db.js';
 import { readEnv } from '@api/config/env.js';
 import { createLogger } from '@api/config/logger.js';
 import { ensureCatalogSeed } from '@api/seed/catalog-seed.js';
+import { OrderModel, CounterModel, StockMovementModel } from '@api/modules/orders/orders.model.js';
 
 const config = readEnv();
 const logger = createLogger(config.LOG_LEVEL);
 
 async function start(): Promise<void> {
   await connectDatabase(config.MONGODB_URI);
+  await Promise.all([OrderModel.init(), CounterModel.init(), StockMovementModel.init()]);
   if (config.NODE_ENV !== 'production') await ensureCatalogSeed();
   const server = createServer(createApp(config, logger));
   server.listen(config.PORT, () => logger.info({ port: config.PORT }, 'API listening'));

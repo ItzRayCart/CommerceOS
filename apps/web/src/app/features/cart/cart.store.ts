@@ -90,6 +90,7 @@ export class CartStore {
   readonly pendingMerge = computed(() => !!this.auth.user() && this.guest().length > 0);
   private lastPrices = readStorage<Record<string, number>>(this.storage, PRICE_KEY, {});
   private requestId = 0;
+  private mergeInFlight: Promise<void> | null = null;
   constructor() {
     effect(() => {
       const user = this.auth.user();
@@ -128,7 +129,20 @@ export class CartStore {
       if (id === this.requestId) this.loading.set(false);
     }
   }
-  private async mergeGuest() {
+  private mergeGuest(): Promise<void> {
+    if (this.mergeInFlight) return this.mergeInFlight;
+    const pending = this.performMerge().finally(() => {
+      this.mergeInFlight = null;
+    });
+    this.mergeInFlight = pending;
+    return pending;
+  }
+  async readyForCheckout(): Promise<void> {
+    if (this.auth.user()) await this.mergeGuest();
+    if (this.pendingMerge())
+      throw new Error('Your guest cart could not be merged. Return to the cart and retry.');
+  }
+  private async performMerge() {
     const lines = this.guest();
     if (!lines.length) {
       await this.load();

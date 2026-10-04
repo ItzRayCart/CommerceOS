@@ -1,6 +1,6 @@
 # CommerceOS
 
-CommerceOS is an Angular storefront backed by an Express REST API and MongoDB. The implemented shopping path covers browsing 30 seeded products, category/search filters, product variants, wishlists, guest and account carts, discount codes, and live price/stock quotes. Authentication is real and uses a rotating refresh session. Checkout and order placement are the next phase.
+CommerceOS is an Angular storefront backed by an Express REST API and MongoDB. The implemented shopping path covers browsing 30 seeded products, category/search filters, product variants, wishlists, guest and account carts, discount codes, checkout, order confirmation, history and pending-order cancellation. Authentication is real and uses a rotating refresh session. Payments use the specified mock card provider or cash on delivery.
 
 ## Architecture
 
@@ -46,8 +46,23 @@ In development, the API creates the HALDEN store settings, five categories, 30 p
 3. Open `/cart`. As a guest, item IDs and quantities persist locally. Prices, stock, shipping, and tax come from `POST /api/v1/cart/price` using MongoDB data.
 4. Register or sign in. Your guest lines merge into your server cart, capped by stock and ten units. Apply `WELCOME10` for 10% off when the subtotal is at least $50. The API validates the code and calculates all totals.
 5. Save a product to the wishlist after sign-in. The header count and `/wishlist` reflect the saved products.
+6. Continue to checkout. Choose a saved address (the default is preselected) or enter a new one. Phone numbers use an international format such as `+923001234567`; country uses two letters such as `PK` or `US`.
+7. Choose Standard, Express or Pickup, then mock card or cash on delivery. Each step requests a fresh server quote. New demo settings use Standard $6 (free from $150 after discounts), Express $18, and Pickup $0. Existing store settings are preserved by normal seeding.
+8. Review and place the order. The confirmation shows the order number, item/address/shipping/currency snapshots, payment, totals and timeline. `/account/orders` lists your orders. Pending COD orders can be cancelled, restoring stock and releasing discount usage.
 
-Unavailable items and stock changes show warnings and block checkout readiness. Server cart lines keep a price fingerprint, so a later catalogue price edit produces a price-change warning without storing a cart price. Guest carts also compare their previous browser quote. The checkout button currently explains that order placement is not available yet; no payment is taken.
+Unavailable items and stock changes show warnings and block checkout readiness. Server cart lines keep a price fingerprint, so a later catalogue price edit produces a price-change warning without storing a cart price. Guest carts also compare their previous browser quote. The order API reads the authenticated server cart and recalculates every amount inside a MongoDB transaction; the browser sends an address/reference, shipping code and payment token, never authoritative prices. If a reviewed quote changes, refresh it and review the new total. Stock changes, audit movements, order creation, discount usage, customer stats and cart clearing commit together.
+
+### Try checkout payments
+
+| Mock card             | Result                                                 |
+| --------------------- | ------------------------------------------------------ |
+| `4242 4242 4242 4242` | Paid order                                             |
+| `4000 0000 0000 0002` | HTTP 402, card declined; cart and stock unchanged      |
+| `4000 0000 0000 9995` | HTTP 402, insufficient funds; cart and stock unchanged |
+
+Use a future `MM/YY` expiry and any three-digit CVC. Luhn, expiry and CVC are validated in the browser. PAN/CVC never enter an API request, stored order, or submission recovery record. These are demonstration payments; no real card is charged. COD creates a pending/unpaid order. An admin can use `PATCH /api/v1/admin/orders/:id/status` with `{ "status": "paid" }` to record payment and `paidAt`; the full admin sales UI remains a later phase.
+
+`POST /api/v1/orders` requires an `Idempotency-Key` header (8–128 letters, digits, underscores or hyphens). Retries for the same user/key return the original order, including after cart clearing. After a connection/server failure, checkout preserves the key and exact token-only payload in session storage and offers **Check pending order**. Keep that key when retrying an API call whose outcome is uncertain. A confirmed payment/validation failure allows a corrected new submission. Confirmation emails use `MAIL_TRANSPORT=console` locally or the existing SMTP settings; email failure does not undo a committed order.
 
 Catalogue data comes from `GET /api/v1/settings/public`, `/categories`, `/products`, `/products/suggest`, and `/products/:slug`. Product images are bundled locally. The implemented endpoint contract is at `/api/docs` and `apps/api/docs/openapi.yaml`.
 
@@ -81,7 +96,7 @@ The API limits authentication requests to 10 per 15 minutes per IP, so use a fre
 | `apps/api`        | Express API, MongoDB connection, validation, logging, errors, OpenAPI                 |
 | `packages/shared` | Dependency-free enums and DTO interfaces                                              |
 
-`npm run build`, `npm run lint`, and `npm test` run across workspaces and are the GitHub Actions checks. `npm run docker:up` and `npm run docker:down` manage Compose. `npm run seed` fills missing demo catalogue data; `npm run seed:reset` replaces it in a disposable development database. The `test:e2e` script remains a later phase and is not part of current CI.
+`npm run build`, `npm run lint`, and `npm test` run across workspaces. GitHub Actions also installs Chromium and runs `npm run test:e2e`. `npm run docker:up` and `npm run docker:down` manage Compose. `npm run seed` fills missing demo catalogue data; `npm run seed:reset` replaces it in a disposable development database.
 
 ## Environment
 
@@ -90,3 +105,14 @@ See `.env.example` for all variables. `MONGODB_URI`, CORS origins, web base URL,
 ## Testing and current scope
 
 Run `npm run lint`, `npm run build`, and `npm test` from the repository root, matching GitHub Actions. API integration tests use `mongodb-memory-server` and may download a MongoDB binary on the first run; they do not need a separately running MongoDB. Docker is required to verify the full Phase 0 clean-clone exit criterion. Demo customer accounts are created through registration; no account password is shipped. The supplied design brief is in `docs/`; keep the confidential engineering specification outside a public repository. See `IMPLEMENTATION_CHECKLIST.md` for remaining phase gates and `DECISIONS.md` for implementation decisions.
+
+For real-browser checkout tests:
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+```
+
+Keep ports 4000 and 4200 free. Playwright starts Angular, Express and a disposable MongoDB replica set, creates its own accounts, and stops them afterwards. It never uses your development database. On Linux, use `npx playwright install --with-deps chromium`. An installed Chrome can be used on Windows with `$env:PLAYWRIGHT_CHROME_CHANNEL='chrome'` before `npm run test:e2e`. If you already have a suitable MongoDB binary, `MONGOMS_SYSTEM_BINARY` can point to it to avoid the first download. First-run MongoDB downloads can be large; a download/setup timeout is separate from a checkout test failure.
+
+The adversarial checkout coverage and specification mapping are in `docs/CHECKOUT_REVIEW.md`. Tests cover payment decline, partial-write rollback, last-unit concurrency, duplicate and lost-response submissions, cart/order races, discount limits/release, immutable snapshots and order ownership.

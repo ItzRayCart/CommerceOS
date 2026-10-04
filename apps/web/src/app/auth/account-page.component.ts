@@ -32,6 +32,7 @@ function emptyAddress() {
         <a routerLink="/">CommerceOS</a><button type="button" (click)="logout()">Logout</button>
       </header>
       <h1>My account</h1>
+      <p><a routerLink="/account/orders">View order history</a></p>
       @if (loading()) {
         <p role="status">Loading account…</p>
       }

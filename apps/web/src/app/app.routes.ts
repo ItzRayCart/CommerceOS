@@ -42,6 +42,35 @@ export const routes: Routes = [
       ),
     children: [
       {
+        path: 'checkout/success/:orderNumber',
+        canActivate: [authGuard],
+        data: { confirmation: true },
+        loadComponent: () =>
+          import('@web/features/checkout/order-page.component').then((m) => m.OrderPageComponent),
+      },
+      {
+        path: 'checkout',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('@web/features/checkout/checkout-page.component').then(
+            (m) => m.CheckoutPageComponent,
+          ),
+      },
+      {
+        path: 'account/orders/:orderNumber',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('@web/features/checkout/order-page.component').then((m) => m.OrderPageComponent),
+      },
+      {
+        path: 'account/orders',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('@web/features/checkout/order-history.component').then(
+            (m) => m.OrderHistoryComponent,
+          ),
+      },
+      {
         path: 'products/:slug',
         loadComponent: () =>
           import('@web/features/catalog/product-page.component').then(

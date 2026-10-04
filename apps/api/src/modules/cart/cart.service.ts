@@ -41,15 +41,20 @@ export async function readCart(user: string) {
   };
 }
 async function mutateCart(user: string, change: (cart: HydratedDocument<Cart>) => Promise<void>) {
-  await ensureCart(user);
   for (let attempt = 0; attempt < 4; attempt++) {
-    const cart = await CartModel.findOne({ user }).orFail();
-    await change(cart);
     try {
+      await ensureCart(user);
+      const cart = await CartModel.findOne({ user });
+      if (!cart) continue;
+      await change(cart);
       await cart.save();
       return await readCart(user);
     } catch (error) {
-      if (!(error instanceof mongoose.Error.VersionError) || attempt === 3) throw error;
+      const retryable =
+        error instanceof mongoose.Error.VersionError ||
+        error instanceof mongoose.Error.DocumentNotFoundError ||
+        (error instanceof mongoose.mongo.MongoServerError && error.code === 11000);
+      if (!retryable) throw error;
     }
   }
   throw new AppError(409, 'CONFLICT', 'Your cart changed. Please try again.');

@@ -19,7 +19,11 @@ export class ApiClient {
     return this.http.get<ApiEnvelope<T>>(`${this.baseUrl}${path}`, { params: httpParams });
   }
 
-  post<TResponse, TBody>(path: string, body: TBody): Observable<ApiEnvelope<TResponse>> {
-    return this.http.post<ApiEnvelope<TResponse>>(`${this.baseUrl}${path}`, body);
+  post<TResponse, TBody>(
+    path: string,
+    body: TBody,
+    headers?: Record<string, string>,
+  ): Observable<ApiEnvelope<TResponse>> {
+    return this.http.post<ApiEnvelope<TResponse>>(`${this.baseUrl}${path}`, body, { headers });
   }
 }

@@ -234,7 +234,7 @@ export async function ensureCatalogSeed(): Promise<void> {
             {
               code: 'standard',
               label: 'Standard delivery',
-              price: 1200,
+              price: 600,
               freeOverSubtotal: 15000,
               estimatedDays: 5,
               isActive: true,
@@ -242,10 +242,11 @@ export async function ensureCatalogSeed(): Promise<void> {
             {
               code: 'express',
               label: 'Express delivery',
-              price: 2400,
+              price: 1800,
               estimatedDays: 2,
               isActive: true,
             },
+            { code: 'pickup', label: 'Pickup', price: 0, estimatedDays: 1, isActive: true },
           ],
         },
         inventory: { lowStockThreshold: 5 },

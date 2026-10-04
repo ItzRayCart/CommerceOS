@@ -1,6 +1,6 @@
 # CommerceOS implementation checklist
 
-Status as of 2026-09-29: foundation and authentication are present; storefront Batches A, B and C have implementation and integration coverage. Full Phase 0–3 exit gates remain open until every required check in those gates passes. Source: CommerceOS Engineering Specification v1.0, September 2026, especially Sections 0–12 and Appendix A. The specification's MUST and SHOULD scope remains in force; COULD work follows completed MUST/SHOULD work.
+Status as of 2026-10-03: foundation, authentication, storefront Batches A/B/C and checkout/orders have implementation and test coverage. Full Phase 0–3 and global release gates remain open until every required check passes. Checkout evidence and its acceptance mapping are in docs/CHECKOUT_REVIEW.md. Source: CommerceOS Engineering Specification v1.0, September 2026, especially Sections 0–12 and Appendix A. The specification's MUST and SHOULD scope remains in force; COULD work follows completed MUST/SHOULD work.
 
 ## Rules for every phase
 
@@ -59,12 +59,12 @@ Implementation sequence requested by the project owner:
 
 ## Phase 4 — Checkout and orders
 
-- [ ] Implement shipping, tax and discount calculations with integer minor units and one half-up tax rounding; cover every BR-07 failure reason.
-- [ ] Implement quote, order placement, idempotency, atomic conditional stock changes, stock movement audit, snapshots, counters, discount redemption, stats and cart clearing in transactions.
-- [ ] Add mock card tokenization/provider, COD, MailProvider/local transport, customer history/detail/cancel, and order confirmation.
-- [ ] Build four-step checkout, success page, order history/detail and status timeline.
-- [ ] Test AC-CHK-01..08, AC-ORD-01, AC-DISC-01..04, BR-01..07/14, failure rollback, concurrent last-unit orders, and E2E journeys 2 and 3.
-- [ ] Exit: Phase 4 criteria and concurrency test pass. Admin COD mark-paid behavior is completed with Phase 6 admin sales UI/API; keep the complete AC-CHK-06 gate open until then.
+- [x] Implement shipping, tax and discount calculations with integer minor units and one half-up tax rounding; cover every BR-07 failure reason.
+- [x] Implement quote, order placement, idempotency, atomic conditional stock changes, stock movement audit, snapshots, counters, discount redemption, stats and cart clearing in transactions.
+- [x] Add mock card tokenization/provider, COD, MailProvider/local transport, customer history/detail/cancel, and order confirmation.
+- [x] Build four-step checkout, success page, order history/detail and status timeline.
+- [x] Test AC-CHK-01..08, AC-ORD-01, AC-DISC-01..04, BR-01..07/14, failure rollback, concurrent last-unit orders, and E2E journeys 2 and 3.
+- [ ] Exit: all Phase 4 criteria and required global gates pass. COD mark-paid backend is tested now; the full admin sales UI and E2E journey 4 remain Phase 6 work. Do not tag or claim earlier/global phase gates complete.
 
 ## Phase 5 — Admin catalogue
 

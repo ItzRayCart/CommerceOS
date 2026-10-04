@@ -5,6 +5,8 @@ import { CategoryModel } from '@api/modules/catalog/category.model.js';
 import { SettingsModel } from '@api/modules/settings/settings.model.js';
 import { DiscountModel, RedemptionModel } from '@api/modules/cart/discount.model.js';
 import type { CartInput } from '@api/modules/cart/cart.schemas.js';
+import type { ClientSession } from 'mongoose';
+import { assertMoney, percentageDiscount, taxHalfUp } from '@api/common/utils/money.js';
 
 const reasons: Record<string, string> = {
   not_found: 'That discount code was not found.',
@@ -30,12 +32,15 @@ export async function priceCart(
   code?: string,
   user?: string,
   strictDiscount = false,
+  options: { session?: ClientSession | undefined; shippingMethodCode?: string } = {},
 ) {
-  const [products, categories, settings] = await Promise.all([
-    ProductModel.find({ _id: { $in: items.map((item) => item.productId) } }).lean(),
-    CategoryModel.find({ isActive: true }).lean(),
-    SettingsModel.findOne({ key: 'store' }).lean(),
-  ]);
+  // Transaction operations must be sequential on a single MongoDB session.
+  const session = options.session ?? null;
+  const products = await ProductModel.find({ _id: { $in: items.map((item) => item.productId) } })
+    .session(session)
+    .lean();
+  const categories = await CategoryModel.find({ isActive: true }).session(session).lean();
+  const settings = await SettingsModel.findOne({ key: 'store' }).session(session).lean();
   if (!settings) throw new NotFoundError('Store settings unavailable');
   const lines = items.map((item) => {
     const product = products.find((p) => p._id.toString() === item.productId);
@@ -67,11 +72,12 @@ export async function priceCart(
     };
   });
   const subtotal = lines.reduce((sum, line) => sum + line.lineTotal, 0);
+  assertMoney(subtotal);
   let discount = 0;
   let discountError: { reason: string; message: string } | null = null;
   if (code) {
     try {
-      const rule = await DiscountModel.findOne({ code }).lean();
+      const rule = await DiscountModel.findOne({ code }).session(session).lean();
       if (!rule) invalid('not_found');
       if (!rule.isActive) invalid('inactive');
       if (rule.startsAt && rule.startsAt > new Date()) invalid('not_started');
@@ -79,7 +85,10 @@ export async function priceCart(
       if (subtotal < rule.minSubtotal) invalid('min_subtotal');
       if (rule.usageLimit !== undefined && rule.usedCount >= rule.usageLimit)
         invalid('usage_limit');
-      if (user && (await RedemptionModel.countDocuments({ code, user })) >= rule.perUserLimit)
+      if (
+        user &&
+        (await RedemptionModel.countDocuments({ code, user }).session(session)) >= rule.perUserLimit
+      )
         invalid('per_user_limit');
       const eligible = lines
         .filter((line) => {
@@ -95,7 +104,7 @@ export async function priceCart(
       if (!eligible) invalid('not_applicable');
       discount = Math.min(
         eligible,
-        rule.type === 'fixed' ? rule.value : Math.floor((eligible * rule.value) / 100),
+        rule.type === 'fixed' ? rule.value : percentageDiscount(eligible, rule.value),
         rule.maxDiscount ?? Number.MAX_SAFE_INTEGER,
       );
     } catch (error) {
@@ -107,14 +116,27 @@ export async function priceCart(
       };
     }
   }
-  const method = settings.shipping.methods.find((m) => m.isActive);
+  const method = settings.shipping.methods.find(
+    (m) => m.isActive && (!options.shippingMethodCode || m.code === options.shippingMethodCode),
+  );
+  if (options.shippingMethodCode && !method)
+    throw new AppError(422, 'VALIDATION_ERROR', 'Choose an active shipping method.', [
+      { path: 'shippingMethodCode', message: 'Shipping method is unavailable' },
+    ]);
   const shipping =
     subtotal && method
       ? method.freeOverSubtotal !== undefined && subtotal - discount >= method.freeOverSubtotal
         ? 0
         : method.price
       : 0;
-  const tax = Math.round(((subtotal - discount) * settings.tax.ratePercent) / 100);
+  const tax = taxHalfUp(subtotal - discount, settings.tax.ratePercent);
+  if (
+    ![subtotal, discount, shipping, tax, subtotal - discount + shipping + tax].every(
+      (amount) => Number.isSafeInteger(amount) && amount >= 0,
+    )
+  ) {
+    throw new AppError(422, 'VALIDATION_ERROR', 'The order amount is outside the supported range.');
+  }
   return {
     lines,
     discountCode: code ?? null,

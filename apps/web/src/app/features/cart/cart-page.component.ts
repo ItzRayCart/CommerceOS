@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { NgOptimizedImage } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { AuthStore } from '@web/core/auth-session';
 import { SettingsStore } from '@web/core/settings-store';
@@ -135,13 +135,10 @@ import { CartStore } from './cart.store';
           <button
             class="checkout"
             [disabled]="!cart.quote().canCheckout || cart.busy()"
-            (click)="checkoutNotice.set('Checkout is coming in the next store phase.')"
+            (click)="checkout()"
           >
             Continue to checkout
           </button>
-          @if (checkoutNotice()) {
-            <p role="status">{{ checkoutNotice() }}</p>
-          }
           <p class="muted">Shipping and tax are estimates until checkout.</p>
         </aside>
       </div>
@@ -289,7 +286,13 @@ export class CartPageComponent {
   readonly auth = inject(AuthStore);
   readonly Math = Math;
   private readonly title = inject(Title);
-  readonly checkoutNotice = signal('');
+  private readonly router = inject(Router);
+  checkout() {
+    void this.router.navigate(
+      this.auth.user() ? ['/checkout'] : ['/login'],
+      this.auth.user() ? {} : { queryParams: { returnUrl: '/checkout' } },
+    );
+  }
   constructor() {
     this.title.setTitle('Shopping cart');
     void this.cart.load();

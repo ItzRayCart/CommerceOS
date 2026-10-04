@@ -27,10 +27,16 @@ import {
 } from '@api/modules/catalog/catalog.routes.js';
 import { createWishlistRouter } from '@api/modules/wishlist/wishlist.routes.js';
 import { createCartRouter } from '@api/modules/cart/cart.routes.js';
+import { createOrderRouters } from '@api/modules/orders/orders.routes.js';
+import type { OrderDependencies } from '@api/modules/orders/orders.service.js';
 
 const openApi = parse(readFileSync(resolve(process.cwd(), 'docs/openapi.yaml'), 'utf8')) as object;
 
-export function createApp(config: Env, logger: Logger): Express {
+export function createApp(
+  config: Env,
+  logger: Logger,
+  orderDependencies?: OrderDependencies,
+): Express {
   const app = express();
   app.disable('x-powered-by');
   app.use(helmet());
@@ -76,7 +82,15 @@ export function createApp(config: Env, logger: Logger): Express {
   app.use(compression());
   app.use(rejectNoSqlOperators);
   app.use(
-    ['/api/v1/auth', '/api/v1/me', '/api/v1/cart', '/api/v1/wishlist'],
+    [
+      '/api/v1/auth',
+      '/api/v1/me',
+      '/api/v1/cart',
+      '/api/v1/wishlist',
+      '/api/v1/checkout',
+      '/api/v1/orders',
+      '/api/v1/admin/orders',
+    ],
     (_request, response, next) => {
       response.setHeader('Cache-Control', 'no-store');
       next();
@@ -100,6 +114,10 @@ export function createApp(config: Env, logger: Logger): Express {
   app.use('/api/v1/products', productsRouter);
   app.use('/api/v1/wishlist', createWishlistRouter(config));
   app.use('/api/v1/cart', createCartRouter(config));
+  const orderRouters = createOrderRouters(config, logger, orderDependencies);
+  app.use('/api/v1/checkout', orderRouters.checkout);
+  app.use('/api/v1/orders', orderRouters.orders);
+  app.use('/api/v1/admin/orders', orderRouters.admin);
   app.use('/api/v1/system', systemRouter);
   app.use(notFound);
   app.use(errorHandler);

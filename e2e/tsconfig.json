@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"],
+    "baseUrl": "..",
+    "paths": {
+      "@api/*": ["apps/api/src/*"],
+      "@commerceos/shared": ["packages/shared/src/index.ts"]
+    }
+  },
+  "include": ["*.ts", "../apps/api/src/common/types/*.d.ts"]
+}
