@@ -1,0 +1,295 @@
+<main class="page-container checkout">
+  <p class="eyebrow">A considered purchase</p>
+  <h1>Checkout</h1>
+  @if (loading()) {
+    <div class="skeleton" role="status">Loading your addresses and shipping options…</div>
+  }
+  @if (error()) {
+    <p role="alert">{{ error() }}</p>
+    @if (loading() === false && !shipping()) {
+      <button (click)="load()">Retry loading</button>
+    }
+  }
+  @if (checkout.error()) {
+    <p role="alert">{{ checkout.error() }}</p>
+  }
+  @if (checkout.pending()) {
+    <section class="panel">
+      <h2 id="checkout-step-title" tabindex="-1">Confirm your submission</h2>
+      <p>
+        Your previous submission has not been confirmed. Retry with the same submission key to
+        retrieve or complete that order safely.
+      </p>
+      <button [disabled]="checkout.busy()" (click)="place()">
+        {{ checkout.busy() ? 'Checking your order…' : 'Check pending order' }}
+      </button>
+    </section>
+  } @else if (!loading() && shipping()) {
+    <ol class="steps" aria-label="Checkout progress">
+      @for (label of steps; track label; let i = $index) {
+        <li>
+          <button
+            [class.current]="step() === i"
+            [attr.aria-current]="step() === i ? 'step' : null"
+            [disabled]="i > step() || checkout.busy()"
+            (click)="edit(i)"
+          >
+            <span class="steps__number" aria-hidden="true">{{ i + 1 }}</span
+            >{{ label }}
+          </button>
+        </li>
+      }
+    </ol>
+    <div class="layout">
+      <section class="panel" [attr.aria-busy]="checkout.busy()">
+        <h2 id="checkout-step-title" tabindex="-1">{{ steps[step()] }}</h2>
+        @if (step() === 0) {
+          <fieldset>
+            <legend>Shipping address</legend>
+            @for (address of addresses(); track address.id) {
+              <label class="choice"
+                ><input
+                  type="radio"
+                  name="address"
+                  [checked]="selectedAddress() === address.id"
+                  (change)="selectedAddress.set(address.id)"
+                />
+                <span
+                  ><strong>{{ address.label }}{{ address.isDefault ? ' · Default' : '' }}</strong
+                  ><br />{{ address.fullName }}<br />{{ address.line1 }}, {{ address.city }}
+                  {{ address.postalCode }}</span
+                ></label
+              >
+            }
+            <label class="choice"
+              ><input
+                type="radio"
+                name="address"
+                [checked]="selectedAddress() === 'new'"
+                (change)="selectedAddress.set('new')"
+              />Use a new address</label
+            >
+          </fieldset>
+          @if (selectedAddress() === 'new') {
+            <form [formGroup]="addressForm" (ngSubmit)="next()" class="fields">
+              @for (field of addressFields; track field.key) {
+                <label [for]="field.key"
+                  >{{ field.label
+                  }}<input
+                    [id]="field.key"
+                    [formControlName]="field.key"
+                    [autocomplete]="field.autocomplete"
+                    [attr.aria-invalid]="
+                      addressForm.controls[field.key].touched &&
+                      addressForm.controls[field.key].invalid
+                    "
+                    [attr.aria-describedby]="field.key + '-error'"
+                  />
+                  @if (
+                    addressForm.controls[field.key].touched &&
+                    addressForm.controls[field.key].invalid
+                  ) {
+                    <small class="error" [id]="field.key + '-error'">{{
+                      addressErrors()[field.key] ||
+                        (field.key === 'phone'
+                          ? 'Enter a phone number with country code, such as +923001234567.'
+                          : field.key === 'country'
+                            ? 'Enter two letters, such as PK or US.'
+                            : 'Complete this field within its length limit.')
+                    }}</small>
+                  }
+                </label>
+              }
+              <button [disabled]="checkout.busy()">Continue to shipping</button>
+            </form>
+          } @else {
+            <button [disabled]="checkout.busy()" (click)="next()">Continue to shipping</button>
+          }
+        }
+        @if (step() === 1) {
+          <fieldset>
+            <legend>Delivery options</legend>
+            @for (method of settings.data()?.shipping?.methods; track method.code) {
+              <label class="choice"
+                ><input
+                  type="radio"
+                  name="shipping"
+                  [checked]="shipping() === method.code"
+                  (change)="shipping.set(method.code)"
+                />
+                <span
+                  ><strong>{{ method.label }}</strong
+                  ><br />{{ method.estimatedDays }} day estimate ·
+                  {{ settings.formatMoney(method.price) }}
+                  @if (method.freeOverSubtotal !== undefined) {
+                    <br /><small
+                      >Free from {{ settings.formatMoney(method.freeOverSubtotal) }} after
+                      discounts.</small
+                    >
+                  }
+                </span></label
+              >
+            }
+          </fieldset>
+          <button [disabled]="checkout.busy()" (click)="next()">Continue to payment</button>
+        }
+        @if (step() === 2) {
+          <p class="muted">Demonstration payments only. No real charge is made.</p>
+          <fieldset>
+            <legend>Payment method</legend>
+            <label class="choice"
+              ><input
+                type="radio"
+                name="payment"
+                [checked]="method() === 'card_mock'"
+                (change)="method.set('card_mock')"
+              />Mock card</label
+            >
+            <label class="choice"
+              ><input
+                type="radio"
+                name="payment"
+                [checked]="method() === 'cod'"
+                (change)="method.set('cod'); cardForm.reset()"
+              />Cash on delivery</label
+            >
+          </fieldset>
+          @if (method() === 'card_mock') {
+            <form [formGroup]="cardForm" (ngSubmit)="next()" class="fields" autocomplete="off">
+              <label
+                >Card number<input
+                  formControlName="number"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  maxlength="23"
+              /></label>
+              <div class="pair">
+                <label
+                  >Expiry (MM/YY)<input
+                    formControlName="expiry"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="7" /></label
+                ><label
+                  >CVC<input
+                    formControlName="cvc"
+                    type="password"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    maxlength="3"
+                /></label>
+              </div>
+              <p class="muted">
+                Success: 4242 4242 4242 4242<br />Declined: 4000 0000 0000 0002<br />Insufficient
+                funds: 4000 0000 0000 9995<br />Use a future expiry and any three-digit CVC.
+              </p>
+              <button [disabled]="checkout.busy()">Review order</button>
+            </form>
+          } @else {
+            <button [disabled]="checkout.busy()" (click)="next()">Review order</button>
+          }
+        }
+        @if (step() === 3 && checkout.quote(); as quote) {
+          <h3>
+            Delivery address
+            <button
+              class="text-button"
+              aria-label="Edit address"
+              [disabled]="checkout.busy()"
+              (click)="edit(0)"
+            >
+              Edit
+            </button>
+          </h3>
+          <address>
+            {{ quote.address.fullName }}<br />{{ quote.address.line1 }} {{ quote.address.line2
+            }}<br />{{ quote.address.city }}, {{ quote.address.region }}
+            {{ quote.address.postalCode }}<br />{{ quote.address.country }} ·
+            {{ quote.address.phone }}
+          </address>
+          <h3>
+            {{ quote.shippingMethod.label }}
+            <button
+              class="text-button"
+              aria-label="Edit shipping"
+              [disabled]="checkout.busy()"
+              (click)="edit(1)"
+            >
+              Edit
+            </button>
+          </h3>
+          <p>{{ quote.shippingMethod.estimatedDays }} day estimate</p>
+          <h3>
+            Payment
+            <button
+              class="text-button"
+              aria-label="Edit payment"
+              [disabled]="checkout.busy()"
+              (click)="edit(2)"
+            >
+              Edit
+            </button>
+          </h3>
+          <p>{{ method() === 'cod' ? 'Cash on delivery' : 'Mock card' }}</p>
+          <ul class="lines">
+            @for (line of quote.lines; track line.variantId) {
+              <li>
+                <span>{{ line.name }} · {{ line.variantLabel }} × {{ line.quantity }}</span
+                ><strong>{{ settings.formatMoney(line.lineTotal) }}</strong>
+              </li>
+            }
+          </ul>
+          <p>The server verifies stock and the current total again when you place your order.</p>
+          <button [disabled]="checkout.busy()" (click)="place()">
+            {{ checkout.busy() ? 'Placing your order…' : 'Place order' }}
+          </button>
+          <button class="text-button" [disabled]="checkout.busy()" (click)="refreshReview()">
+            Refresh quote
+          </button>
+        }
+        @if (step() === 3 && !checkout.quote()) {
+          <p>Your quote is unavailable. Refresh it to continue.</p>
+          <button [disabled]="checkout.busy()" (click)="refreshReview()">Retry quote</button>
+        }
+        @if (step() > 0) {
+          <button class="text-button" [disabled]="checkout.busy()" (click)="edit(step() - 1)">
+            Back
+          </button>
+        }
+        <p><a routerLink="/cart">Return to cart</a></p>
+      </section>
+      <aside class="panel summary" aria-live="polite">
+        <h2>Order summary</h2>
+        @if (checkout.busy()) {
+          <p role="status">Verifying your order…</p>
+        }
+        @if (checkout.quote(); as quote) {
+          <dl>
+            <div>
+              <dt>Subtotal</dt>
+              <dd>{{ settings.formatMoney(quote.totals.subtotal) }}</dd>
+            </div>
+            <div>
+              <dt>Discount{{ quote.discountCode ? ' · ' + quote.discountCode : '' }}</dt>
+              <dd>−{{ settings.formatMoney(quote.totals.discount) }}</dd>
+            </div>
+            <div>
+              <dt>{{ quote.shippingMethod.label }}</dt>
+              <dd>{{ settings.formatMoney(quote.totals.shipping) }}</dd>
+            </div>
+            <div>
+              <dt>Tax</dt>
+              <dd>{{ settings.formatMoney(quote.totals.tax) }}</dd>
+            </div>
+            <div class="total">
+              <dt>Total</dt>
+              <dd>{{ settings.formatMoney(quote.totals.total) }}</dd>
+            </div>
+          </dl>
+        } @else {
+          <p>Your live quote appears after confirming your address.</p>
+        }
+      </aside>
+    </div>
+  }
+</main>

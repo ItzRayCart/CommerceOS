@@ -1,0 +1,103 @@
+<h1>Discounts</h1>
+<form class="toolbar" [formGroup]="filters" (ngSubmit)="apply()">
+  <label>Search code<input formControlName="q" /></label
+  ><label
+    >Discount status<select formControlName="status">
+      <option value="">All statuses</option>
+      @for (s of ['active', 'scheduled', 'expired', 'exhausted', 'disabled']; track s) {
+        <option [value]="s">{{ s }}</option>
+      }
+    </select></label
+  ><button>Apply filters</button>
+</form>
+<adm-feedback
+  [loading]="list.state.loading()"
+  [error]="list.state.error()"
+  [message]="list.state.feedback()"
+  (retry)="list.load(); scopes()"
+/>
+<div class="grid">
+  <section class="panel">
+    <h2>{{ editing() ? 'Edit discount' : 'Create discount' }}</h2>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <label
+        >Code<input formControlName="code" required [readOnly]="!!editing()" />
+        @if (list.state.fields()['code']) {
+          <span class="field-error">{{ list.state.fields()['code'] }}</span>
+        }</label
+      ><label>Description<input formControlName="description" /></label>
+      <div class="grid">
+        <label
+          >Discount type<select formControlName="type">
+            <option value="percentage">Percentage</option>
+            <option value="fixed">Fixed minor units</option>
+          </select></label
+        ><label>Value<input type="number" formControlName="value" min="1" /></label
+        ><label>Minimum subtotal<input type="number" formControlName="minSubtotal" min="0" /></label
+        ><label>Percentage cap<input type="number" formControlName="maxDiscount" min="0" /></label
+        ><label
+          >Starts at (local time)<input type="datetime-local" formControlName="startsAt" /></label
+        ><label
+          >Expires at (local time)<input type="datetime-local" formControlName="expiresAt" /></label
+        ><label
+          >Global usage limit<input type="number" formControlName="usageLimit" min="0" /></label
+        ><label
+          >Per customer limit<input type="number" formControlName="perUserLimit" min="1"
+        /></label>
+      </div>
+      <label
+        >Eligible categories (empty means all)<select multiple formControlName="categories">
+          @for (c of categories(); track c.id) {
+            <option [value]="c.id">{{ c.name }}</option>
+          }
+        </select></label
+      ><label
+        >Eligible products<select multiple formControlName="products">
+          @for (p of products(); track p.id) {
+            <option [value]="p.id">{{ p.name }}</option>
+          }
+        </select></label
+      ><label class="check"><input type="checkbox" formControlName="isActive" />Enabled</label>
+      <div class="actions">
+        <button class="primary" [disabled]="list.state.busy()">Save discount</button
+        ><button type="button" (click)="reset()">New discount</button>
+      </div>
+    </form>
+  </section>
+  <section class="panel table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Status</th>
+          <th>Value</th>
+          <th>Uses</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (d of list.state.data(); track d.id) {
+          <tr>
+            <td>{{ d.code }}</td>
+            <td>{{ d.status }}</td>
+            <td>{{ d.value }} {{ d.type === 'percentage' ? '%' : 'minor units' }}</td>
+            <td>{{ d.usedCount }} / {{ d.usageLimit ?? '∞' }}</td>
+            <td>
+              <button (click)="edit(d)">Edit</button
+              ><button (click)="remove(d)" [disabled]="list.state.busy()">Delete</button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">Create a discount code to offer a promotion.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+</div>
+<adm-pagination
+  [meta]="list.state.meta()"
+  (page)="list.page($event)"
+  (limit)="list.limit($event)"
+/><adm-confirm />

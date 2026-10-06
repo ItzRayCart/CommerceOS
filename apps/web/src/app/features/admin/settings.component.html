@@ -1,0 +1,135 @@
+<h1>Store settings</h1>
+<p>Brand, currency, shipping and presentation are configured here.</p>
+<adm-feedback
+  [loading]="state.loading()"
+  [error]="state.error()"
+  [message]="state.feedback()"
+  (retry)="load()"
+/>
+@if (ready()) {
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <section class="panel">
+      <h2>Store profile</h2>
+      <div class="grid">
+        <label>Store name<input formControlName="name" required /></label
+        ><label>Tagline<input formControlName="tagline" /></label
+        ><label>Support email<input type="email" formControlName="supportEmail" required /></label
+        ><label>Contact phone<input formControlName="phone" /></label
+        ><label>Store address<textarea formControlName="address"></textarea></label
+        ><label>Announcement<input formControlName="announcement" /></label
+        ><label
+          >Store logo<input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="upload($event)"
+        /></label>
+      </div>
+      <div formArrayName="valueProps">
+        @for (p of form.controls.valueProps.controls; track p; let i = $index) {
+          <div class="grid" [formGroupName]="i">
+            <label>Value proposition {{ i + 1 }} title<input formControlName="title" /></label
+            ><label>Value proposition {{ i + 1 }} text<input formControlName="text" /></label
+            ><button type="button" (click)="form.controls.valueProps.removeAt(i)">
+              Remove value proposition
+            </button>
+          </div>
+        }
+      </div>
+      <button
+        type="button"
+        (click)="form.controls.valueProps.push(fb.group({ title: '', text: '' }))"
+      >
+        Add value proposition
+      </button>
+    </section>
+    <section class="panel">
+      <h2>Currency, tax and inventory</h2>
+      <p>
+        Amounts are stored in minor units. Changing decimals affects future price formatting;
+        historical orders retain their currency snapshot.
+      </p>
+      <div class="grid">
+        <label>Currency code<input formControlName="currencyCode" maxlength="3" /></label
+        ><label>Currency symbol<input formControlName="currencySymbol" /></label
+        ><label
+          >Decimal places<input type="number" min="0" max="3" formControlName="decimals" /></label
+        ><label
+          >Tax percentage<input
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            formControlName="taxRate" /></label
+        ><label
+          >Default low stock threshold<input
+            type="number"
+            min="0"
+            formControlName="lowStockThreshold" /></label
+        ><label>Order number prefix<input formControlName="orderNumberPrefix" /></label>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Shipping methods</h2>
+      <div formArrayName="methods">
+        @for (m of form.controls.methods.controls; track m; let i = $index) {
+          <div class="panel" [formGroupName]="i">
+            <div class="grid">
+              <label>Shipping {{ i + 1 }} code<input formControlName="code" /></label
+              ><label>Shipping {{ i + 1 }} label<input formControlName="label" /></label
+              ><label
+                >Shipping {{ i + 1 }} price<input
+                  type="number"
+                  min="0"
+                  formControlName="price" /></label
+              ><label
+                >Shipping {{ i + 1 }} free over subtotal<input
+                  type="number"
+                  min="0"
+                  formControlName="freeOverSubtotal" /></label
+              ><label
+                >Shipping {{ i + 1 }} estimated days<input
+                  type="number"
+                  min="1"
+                  formControlName="estimatedDays" /></label
+              ><label class="check"
+                ><input type="checkbox" formControlName="isActive" />Active</label
+              >
+            </div>
+            <button type="button" (click)="form.controls.methods.removeAt(i)">Remove method</button>
+          </div>
+        }
+      </div>
+      <button type="button" (click)="form.controls.methods.push(method())">
+        Add shipping method
+      </button>
+    </section>
+    <section class="panel">
+      <h2>Theme and features</h2>
+      <div class="grid">
+        <label
+          >Primary theme colour<input
+            type="color"
+            formControlName="primary"
+            (input)="preview()" /></label
+        ><label
+          >Accent theme colour<input type="color" formControlName="accent" (input)="preview()"
+        /></label>
+      </div>
+      <p>
+        The current page previews your colours immediately. Save to apply them across the
+        storefront.
+      </p>
+      <label class="check"
+        ><input type="checkbox" formControlName="wishlist" />Enable wishlist</label
+      ><label class="check"
+        ><input type="checkbox" formControlName="reviews" />Enable reviews</label
+      >
+    </section>
+    <div class="save-bar">
+      <span>Changes apply without a code update.</span
+      ><button class="primary" [disabled]="state.busy()">
+        {{ state.busy() ? 'Saving…' : 'Save settings' }}
+      </button>
+    </div>
+  </form>
+}

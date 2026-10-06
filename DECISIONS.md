@@ -16,6 +16,18 @@ Source of truth: CommerceOS Engineering Specification v1.0 (September 2026). Rec
 
 No phase has shipped. At each completed phase, add its date, shipped scope, deviations, test/exit evidence and any deferred COULD items, then tag as required by Section 12.
 
+## 2026-10-03 — Checkout and orders
+
+- **Decision:** Calculate quotes in read-only snapshot transactions and reload all pricing/stock/discount inputs in the placement transaction. Version writes fence concurrent cart, settings and category changes; stock uses conditional atomic decrements. **Reason:** Pre-transaction validation alone leaves races with stock, discount and catalogue changes.
+- **Decision:** Require an Idempotency-Key for API placement, scoped by authenticated user. Use a partial unique string-key compound index rather than sparse compound indexing. **Reason:** Historical orders may omit the key, and a sparse compound index still indexes those rows when user is present. Replay returns the existing order before inspecting the cleared cart, as Section 5.7 requires.
+- **Decision:** Keep uncertain submissions' exact key and token-only input in per-user session storage; preserve it on network/5xx/429/auth uncertainty. **Reason:** A response can be lost after commit. Retry retrieves the original order instead of making another purchase.
+- **Decision:** Add optional quoteFingerprint to the order input and immutable currency snapshots to orders. **Reason:** A fingerprint detects changes since review without trusting client prices. Currency snapshots prevent later store formatting changes from reinterpreting historical amounts.
+- **Decision:** Preserve existing percentage-discount truncation to integer minor units and use BigInt intermediates; round half-up only for tax. **Reason:** The specification requires integer money and tax-only half-up rounding but does not specify fractional discount cents; this preserves cart compatibility and avoids floating-point overflow/precision loss.
+- **Decision:** Tokenise the three specified mock cards entirely in the browser; the deterministic MockPaymentProvider accepts opaque fixtures and derives last4 itself. **Reason:** PAN/CVC never reaches API/database/logs; retries have no external charge side effects. Real payment processing remains outside scope.
+- **Decision:** Implement the protected admin status transition API now to test COD mark-paid and enforce the shared transactional state machine. Full admin sales pages/list/notes remain in Phase 6. **Reason:** AC-CHK-06 crosses checkout and the later admin phase; its backend assertion can be completed now without building unrelated admin modules.
+- **Decision:** Add @playwright/test as a development dependency and run isolated checkout browser journeys in CI. **Reason:** Section 9.4 and the checkout phase require reproducible real-browser verification. The fixture owns a disposable MongoDB replica set and never resets the development database.
+- **Status:** Address → Shipping → Payment → Review → Place order → Confirmation, own order history/detail/cancel, transactional stock/movements/counters/discounts/stats/cart clearing, confirmation mail and adversarial regression tests are implemented. Confirmed cart/order race and seed shipping discrepancies were fixed. Evidence and remaining global/Phase 6 gates are recorded in docs/CHECKOUT_REVIEW.md. No commit, push or phase tag has been created.
+
 ## 2026-09-29 — Foundation implementation choices
 
 - **Decision:** Use Angular 21.2 with TypeScript 5.9 and Node.js 24 LTS. **Reason:** Angular 22 is the newest stable Angular, but it requires TypeScript 6.0; Angular 21.2 is the newest Angular line compatible with the specification's mandatory TypeScript 5.x. This is a documented version deviation, not a technology substitution.
@@ -31,3 +43,41 @@ No phase has shipped. At each completed phase, add its date, shipped scope, devi
 - **Decision:** Treat a public `role` registration field as ignored, while strict Zod schemas reject other unknown fields. **Reason:** This resolves the Section 8 validation rule against the explicit tampering acceptance criterion without allowing self-assigned admin roles.
 - **Decision:** Use a single-use SHA-256 reset token consumed in a MongoDB transaction; revoking refresh sessions joins the same transaction. **Reason:** This prevents a partly applied reset and meets the all-device invalidation rule. MongoDB must run as a replica set.
 - **Decision:** Keep the access token in the Angular session service only, bootstrap from the refresh cookie, and share one in-flight refresh promise across callers. **Reason:** This implements the specified memory-only token and single-flight retry behavior.
+
+## 2026-09-29 — Storefront batches A, B and C
+
+- **Decision:** Keep the supplied design brief in `docs/` so the GitHub checkout carries the storefront style reference. The authoritative engineering PDF remains outside the repository because its cover marks it confidential. The HALDEN identity, colours, currency, announcement and value propositions live in MongoDB settings and are projected by `/settings/public`; Angular applies the theme at runtime. **Reason:** A future store can replace the seed settings without editing storefront components.
+- **Decision:** Seed 30 demo products, five categories, three colour variants per product, local vector artwork, public settings and `WELCOME10`. Startup seeds missing data only in non-production; production requires an explicit seed command. **Reason:** The catalogue and shopping journey need real MongoDB documents while production startup must not create demo merchandise automatically.
+- **Decision:** Treat `?variant=` as the stable SKU deep link. Variant options, price, compare-at price, stock and gallery follow the selected SKU; out-of-stock combinations remain visible but cannot be selected for purchase. **Reason:** This meets the product-page deep-link acceptance case without coupling links to subdocument IDs.
+- **Decision:** Keep guest cart persistence in browser local storage with IDs and quantities. Every guest quote and account cart read is repriced from MongoDB. Server cart items keep a SHA-256 fingerprint of their last quoted variant price; account reads compare that fingerprint with current catalogue price to set `priceChanged`. The browser also compares its last guest quote. **Reason:** Sections 4.6, BR-02 and BR-09 prohibit trusting client prices or persisting prices on cart lines; a fingerprint lets the API detect edits without storing a price or receiving one from the client.
+- **Decision:** Applying a code requires sign-in. Guest `/cart/price` accepts only item identities and quantities, matching the specified API request. A saved code is revalidated on every authenticated cart read and returns a clear `discountError` if it no longer qualifies. **Reason:** A quote must never silently retain an invalid benefit.
+- **Decision:** The cart shows estimated shipping and tax using the first active shipping method. Checkout is left visible with an explicit unavailable message until the checkout/order module supplies address and shipping selection. **Reason:** The requested Batch C ends at cart totals; claiming an order can be placed would mislead shoppers.
+- **Decision:** Add `<base href="/">` to the Angular document. **Reason:** A browser pass found that direct links such as `/products/:slug?variant=...` otherwise resolved `main.js` relative to `/products/` and rendered a blank page.
+- **Status:** Batch A API, seeded data and pages; Batch B product detail/gallery/stock/wishlist; and Batch C guest/account cart, merge, discounts and totals are implemented. The MongoDB API suite passed 22 tests with 88.16% line coverage, and the Angular suite passed four tests at the last full run. Browser verification covered direct SKU links, guest persistence, login merge, `WELCOME10` totals and wishlist add/remove counts. Full Phase 2 and Phase 3 exit gates remain open for the specification's Lighthouse, index-plan, formal E2E and all acceptance coverage. No phase completion tag has been created.
+
+## 2026-10-04 - Admin catalogue, sales, insight and settings
+
+- **Architecture:** Angular standalone lazy routes, OnPush/signals/reactive forms, shared strict DTOs, thin Express controllers/domain services, npm workspaces and transactional MongoDB remain the specified stack.
+- **Charts:** Use the specification's hand-written SVG option with accessible labels and tabular metrics, avoiding an additional chart bundle.
+- **Dependencies:** Add specified `multer`, `sanitize-html` and their type declarations. UUID local media uses StorageProvider. Jest 29 requires a narrow ESM-to-CommonJS parser-dependency transformer for sanitizer tests; lint rules and application builds are unchanged.
+- **Stock:** Preserve variant IDs; deactivate existing variants instead of removing them. Both product and variant saves compare the original updatedAt to reject stale editors. Stock changes and movements commit together.
+- **Discounts:** Retain historical redemptions when deleting codes; reject reuse of redeemed deleted codes to avoid resetting historical usage. Existing codes remain immutable.
+- **Authorization:** Admin routers authenticate/authorize before validation. Role/status changes lock active administrators together in a transaction, protecting the last admin against concurrent removals. Self demotion/disable is rejected.
+- **Settings:** Persist branding/theme/currency/tax/shipping in MongoDB. Optional branding accepts blank values; configured currency symbols are respected; discarded previews restore saved colours. Existing orders retain snapshots.
+- **Browser tests:** Separate disposable server/database lifecycles for independent suites prevent their combined auth traffic exhausting the real 10-per-15-minute quota. No application limit is weakened.
+- **Seed:** Explicit seeding adds public demo accounts, 40 customers, ten child categories, two draft/one archived products and 120 dated orders using real checkout/transitions. Idempotency, stock audits and customer statistics are integration-tested. Full-spec reviews seed depends on the Phase 8 review module and remains an open gate.
+- **Verification:** See docs/ADMIN_REVIEW.md. Full Docker/Lighthouse/latency/a11y release certification remains open. No commit, push or release tag is created.
+
+Browser suite scratch directories live under ignored `node_modules/.cache/commerceos-e2e` and are removed after each suite. This avoids leaked temporary MongoDB data exhausting the system drive on Windows.
+
+## 2026-10-06 - UI redesign
+
+- Follow the existing restrained product-first brief. Reference research used official Apple, Bellroy and Nothing pages; design tradeoffs are assessments rather than measured conversion claims. See docs/UI_REDESIGN.md.
+- Separate desktop category navigation from search/account/cart. Keep mobile search and accessible icon labels. Use one shared SVG icon component, a light product-led home hero and consistent product/forms/admin surfaces.
+- Self-host Latin Inter and Space Grotesk WOFF2 subsets with SIL OFL notices. Original sources are Google Fonts' ofl/inter and ofl/spacegrotesk directories on GitHub. fontTools/Brotli were used only from an ignored conversion cache; no runtime application dependency was added.
+- Extract component-scoped styles into SCSS; retain settings-driven brand/theme/currency and all commerce/admin APIs. Hover treatment preserves secondary-button contrast rather than forcing every button to a dark background.
+- Add responsive visual regression/screenshots and API Retry/guest-cart coverage. Keep backend pricing, authentication/session rules and admin permissions intact. User continues to own commits/pushes.
+
+## 2026-10-07 - Free-form commit messages
+
+At the project owner's request, remove the Husky commit-msg hook that enforced Conventional Commits. Commit messages no longer require type prefixes. Pre-commit formatting and CI lint/build/test checks remain active. This user preference overrides the original specification's commit-message tooling requirement.

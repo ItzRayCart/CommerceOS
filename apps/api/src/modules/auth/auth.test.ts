@@ -157,6 +157,12 @@ describe('authentication session journey', () => {
     const service = createAuthService(
       config,
       {
+        sendOrderConfirmation() {
+          return Promise.resolve();
+        },
+        sendOrderShipped() {
+          return Promise.resolve();
+        },
         sendPasswordReset(_to, url) {
           resetUrl = url;
           return Promise.resolve();

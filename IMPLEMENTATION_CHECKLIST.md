@@ -1,6 +1,6 @@
 # CommerceOS implementation checklist
 
-Planning status: Phase 0 foundation implementation is in progress on `feat/phase-0-foundation`. Source: CommerceOS Engineering Specification v1.0, September 2026, especially Sections 0-12 and Appendix A. The specification's MUST and SHOULD scope remains in force; COULD work follows completed MUST/SHOULD work.
+Status as of 2026-10-03: foundation, authentication, storefront Batches A/B/C and checkout/orders have implementation and test coverage. Full Phase 0–3 and global release gates remain open until every required check passes. Checkout evidence and its acceptance mapping are in docs/CHECKOUT_REVIEW.md. Source: CommerceOS Engineering Specification v1.0, September 2026, especially Sections 0–12 and Appendix A. The specification's MUST and SHOULD scope remains in force; COULD work follows completed MUST/SHOULD work.
 
 ## Rules for every phase
 
@@ -43,51 +43,51 @@ Implementation sequence requested by the project owner:
 ## Phase 2 — Catalogue
 
 - [ ] Model settings, categories, products, variants, visibility, unique SKU/slug rules, denormalized price/stock/rating fields, and required indexes.
-- [ ] Implement public settings/category/product/list/suggest/related endpoints with search relevance, allow-listed sort, filters, facets, and pagination.
-- [ ] Build idempotent catalogue seed: category tree, approximately 30 products, variant and stock cases, branded local images, descriptive copy, initial settings.
-- [ ] Build home, catalogue, search, category, and product pages with URL state, variant deep links, gallery, metadata, and responsive states.
+- [x] Implement public settings/category/product/list/suggest/related endpoints with search relevance, allow-listed sort, filters, facets, and pagination.
+- [x] Build idempotent catalogue seed: category tree, approximately 30 products, variant and stock cases, branded local images, descriptive copy, initial settings.
+- [x] Build home, catalogue, search, category, and product pages with URL state, variant deep links, gallery, metadata, and responsive states.
 - [ ] Test AC-CAT-01..06, AC-PDP-01..03, BR-08/12/15, index-backed `explain()` without COLLSCAN, and Home/PDP Lighthouse targets.
 - [ ] Exit: all catalogue/PDP criteria pass, `explain()` gate passes, desktop Lighthouse Performance/Accessibility/Best Practices >= 90 on Home and PDP.
 
 ## Phase 3 — Cart and wishlist
 
-- [ ] Model server carts and wishlists; implement guest `/cart/price`, cart item/merge/discount endpoints and wishlist endpoints.
-- [ ] Reprice from database on read; report stock and price changes; cap quantities to stock and 10; keep guest cart local and merge on sign-in.
-- [ ] Build CartStore, WishlistStore, cart drawer/page, coupon UI, wishlist page, and live header counts.
+- [x] Model server carts and wishlists; implement guest `/cart/price`, cart item/merge/discount endpoints and wishlist endpoints.
+- [x] Reprice from database on read; report stock and price changes; cap quantities to stock and 10; keep guest cart local and merge on sign-in.
+- [x] Build CartStore, WishlistStore, cart drawer/page, coupon UI, wishlist page, and live header counts.
 - [ ] Test AC-CART-01..04, AC-WISH-01, BR-02/09, guest-to-user merge and unavailable-line behavior.
 - [ ] Exit: cart and wishlist acceptance and tests pass.
 
 ## Phase 4 — Checkout and orders
 
-- [ ] Implement shipping, tax and discount calculations with integer minor units and one half-up tax rounding; cover every BR-07 failure reason.
-- [ ] Implement quote, order placement, idempotency, atomic conditional stock changes, stock movement audit, snapshots, counters, discount redemption, stats and cart clearing in transactions.
-- [ ] Add mock card tokenization/provider, COD, MailProvider/local transport, customer history/detail/cancel, and order confirmation.
-- [ ] Build four-step checkout, success page, order history/detail and status timeline.
-- [ ] Test AC-CHK-01..08, AC-ORD-01, AC-DISC-01..04, BR-01..07/14, failure rollback, concurrent last-unit orders, and E2E journeys 2 and 3.
-- [ ] Exit: Phase 4 criteria and concurrency test pass. Admin COD mark-paid behavior is completed with Phase 6 admin sales UI/API; keep the complete AC-CHK-06 gate open until then.
+- [x] Implement shipping, tax and discount calculations with integer minor units and one half-up tax rounding; cover every BR-07 failure reason.
+- [x] Implement quote, order placement, idempotency, atomic conditional stock changes, stock movement audit, snapshots, counters, discount redemption, stats and cart clearing in transactions.
+- [x] Add mock card tokenization/provider, COD, MailProvider/local transport, customer history/detail/cancel, and order confirmation.
+- [x] Build four-step checkout, success page, order history/detail and status timeline.
+- [x] Test AC-CHK-01..08, AC-ORD-01, AC-DISC-01..04, BR-01..07/14, failure rollback, concurrent last-unit orders, and E2E journeys 2 and 3.
+- [ ] Exit: all Phase 4 criteria and required global gates pass. COD mark-paid backend is tested now; the full admin sales UI and E2E journey 4 remain Phase 6 work. Do not tag or claim earlier/global phase gates complete.
 
 ## Phase 5 — Admin catalogue
 
-- [ ] Build admin shell, category CRUD, product list/create/edit/duplicate/archive/delete and variant matrix editor.
-- [ ] Add upload storage provider, MIME/magic-byte/size checks, image ordering/primary/alt text, and stock adjustment/movement history.
-- [ ] Build inventory filters and low-stock handling with atomic updates.
+- [x] Build admin shell, category CRUD, product list/create/edit/duplicate/archive/delete and variant matrix editor.
+- [x] Add upload storage provider, MIME/magic-byte/size checks, image ordering/primary/alt text, and stock adjustment/movement history.
+- [x] Build inventory filters and low-stock handling with atomic updates.
 - [ ] Test AC-ADMP-01..04, AC-INV-01..02, relevant BR-11/12/14, and E2E journey 5.
 - [ ] Exit: admin catalogue and inventory gates pass. AC-INV-02 dashboard panel is finished with Phase 7; inventory-side behavior passes here.
 
 ## Phase 6 — Admin sales
 
-- [ ] Implement admin orders list/detail/status transitions, shipping, refund/restock, internal notes, customers list/detail/status/role changes, discount code administration.
-- [ ] Enforce state machine, self/last-admin protection, ownership policy and transactional side effects.
-- [ ] Build admin orders/customers/discount pages with URL-backed filters, counts, forms, and legal action controls.
+- [x] Implement admin orders list/detail/status transitions, shipping, refund/restock, internal notes, customers list/detail/status/role changes, discount code administration.
+- [x] Enforce state machine, self/last-admin protection, ownership policy and transactional side effects.
+- [x] Build admin orders/customers/discount pages with URL-backed filters, counts, forms, and legal action controls.
 - [ ] Test AC-ADMO-01..04, AC-ADMC-01, discount admin behavior, delayed AC-CHK-06 and AC-RBAC-03/04, and E2E journey 4.
 - [ ] Exit: admin sales criteria and cross-phase acceptance items pass.
 
 ## Phase 7 — Insight and settings
 
-- [ ] Implement dashboard and analytics aggregation pipelines, indexed time series, KPIs/deltas, category/product/customer/discount metrics, and filtered CSV exports.
-- [ ] Implement full settings edit/public projection, runtime CSS theme, store identity, currency/tax/shipping behavior and feature toggles.
+- [x] Implement dashboard and analytics aggregation pipelines, indexed time series, KPIs/deltas, category/product/customer/discount metrics, and filtered CSV exports.
+- [x] Implement full settings edit/public projection, runtime CSS theme, store identity, currency/tax/shipping behavior and feature toggles.
 - [ ] Complete idempotent seed with approximately 40 customers, 120 coherent historical orders, 40 reviews, all specified discount states, and audit/aggregate consistency.
-- [ ] Build dashboard, analytics and settings pages; include low-stock dashboard panel.
+- [x] Build dashboard, analytics and settings pages; include low-stock dashboard panel.
 - [ ] Test AC-DASH-01..02, AC-ANA-01..02, AC-SET-01..02 and delayed AC-INV-02.
 - [ ] Exit: insight/settings gates pass against the full seed.
 
@@ -118,3 +118,7 @@ Implementation sequence requested by the project owner:
 - Sections 4.4 and 5.7 require denormalized `totalStock`/`minPrice` consistency. Atomic stock updates, variant edits, refunds and seeding must update these values within the relevant transaction.
 - Settings-driven brand and prices require a usable default settings document before catalogue and checkout flows; Docker seed/bootstrap must be idempotent.
 - Phase tags, phase branches, Docker CI, replica-set memory tests, browser E2E and Lighthouse require working external runtimes. Validate these gates explicitly; do not mark a phase complete merely because code builds.
+
+## 2026-10-04 verification update
+
+The four requested admin blocks are implemented. Integration/browser tests verify publication, stock audits, COD payment/fulfilment, analytics and saved branding. API line coverage: 90.99%, above the previous baseline. Evidence: docs/ADMIN_REVIEW.md. Full phase exits remain open for remaining global gates and complete specification seed/reviews requirements; implementation checkmarks do not declare a release.

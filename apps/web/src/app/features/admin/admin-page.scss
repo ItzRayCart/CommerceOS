@@ -1,0 +1,240 @@
+:host {
+  display: block;
+}
+h1 {
+  margin: 0.5rem 0 1.5rem;
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.2rem;
+}
+p {
+  color: var(--color-muted);
+}
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.toolbar label {
+  min-width: 8rem;
+  flex: 1;
+}
+.toolbar a {
+  align-self: center;
+}
+.panel {
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.grid {
+  grid-template-columns: minmax(0, 1fr);
+  display: grid;
+  gap: 1.5rem;
+}
+.table-wrap {
+  overflow: auto;
+  max-width: 100%;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+}
+th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+td,
+th {
+  padding: 0.9rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+}
+td:first-child a {
+  font-weight: 600;
+}
+td small {
+  display: block;
+  color: var(--color-muted);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+input,
+select,
+textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--color-border);
+  padding: 0.65rem;
+  border-radius: var(--radius-button);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+textarea {
+  min-height: 6rem;
+}
+button {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-button);
+  cursor: pointer;
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+button.primary {
+  background: var(--color-ink);
+  color: var(--color-surface);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.badge {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+.field-error {
+  color: var(--color-danger);
+  font-size: 0.8rem;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.check input {
+  width: 1.25rem;
+  min-height: 1.25rem;
+}
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  z-index: 2;
+}
+.empty {
+  padding: 3rem;
+  text-align: center;
+}
+.kpis {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.kpis strong {
+  display: block;
+  font-size: 1.6rem;
+}
+.kpis small {
+  color: var(--color-muted);
+}
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+dialog {
+  width: calc(100% - 2rem);
+  max-width: 35rem;
+  border: 1px solid var(--color-border);
+  padding: 2rem;
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+dialog::backdrop {
+  background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+}
+
+h1 {
+  font-weight: 500;
+  font-size: 1.9rem;
+}
+h2 {
+  font-weight: 550;
+}
+.panel {
+  box-shadow: var(--shadow-soft);
+}
+.table-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+thead {
+  background: var(--color-subtle);
+}
+th {
+  padding: 1rem 0.9rem;
+  font-size: 0.75rem;
+}
+td {
+  padding: 1rem 0.9rem;
+  font-size: 0.8rem;
+}
+tbody tr:hover {
+  background: var(--color-subtle);
+}
+.kpis article {
+  border-top: 2px solid var(--color-accent);
+}
+.kpis strong {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.kpis p {
+  font-size: 0.8rem;
+}
+.toolbar {
+  padding-bottom: 1rem;
+}
+dialog {
+  box-shadow: var(--shadow-raised);
+}
+.save-bar {
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  box-shadow: var(--shadow-soft);
+}
+@media (max-width: 480px) {
+  .kpis strong {
+    font-size: 1.35rem;
+  }
+  .kpis .panel {
+    padding: 1rem;
+  }
+  .save-bar {
+    flex-wrap: wrap;
+  }
+}

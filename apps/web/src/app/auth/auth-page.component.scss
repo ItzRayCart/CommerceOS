@@ -1,0 +1,98 @@
+.auth-page {
+  max-width: 30rem;
+  margin: 4rem auto;
+  padding: 2rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+.brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+h1 {
+  margin: 0.4rem 0 2rem;
+}
+form,
+label {
+  display: grid;
+  gap: 0.5rem;
+}
+form {
+  gap: 1rem;
+}
+form > button {
+  width: 100%;
+}
+input {
+  width: 100%;
+}
+nav {
+  margin-top: 1.5rem;
+}
+[role='alert'] {
+  color: var(--color-danger);
+  margin: 0;
+}
+.field-error {
+  font-size: 0.82rem;
+  margin: -0.7rem 0 0;
+}
+
+:host {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 2rem 1.25rem;
+  background: var(--color-stage);
+}
+.auth-page {
+  width: 100%;
+  max-width: 29rem;
+  margin: 0;
+  padding: clamp(1.5rem, 5vw, 3rem);
+  border-radius: 16px;
+  box-shadow: var(--shadow-raised);
+}
+.brand {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 1.15rem;
+}
+h1 {
+  font-weight: 500;
+  font-size: 2.25rem;
+}
+label {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+nav {
+  font-size: 0.85rem;
+}
+nav a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+form > button {
+  margin-top: 0.5rem;
+  min-height: 48px;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+}
+nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
