@@ -1,6 +1,6 @@
 # CommerceOS
 
-CommerceOS is an Angular storefront backed by an Express REST API and MongoDB. The implemented shopping path covers browsing 30 seeded products, category/search filters, product variants, wishlists, guest and account carts, discount codes, checkout, order confirmation, history and pending-order cancellation. Authentication is real and uses a rotating refresh session. Payments use the specified mock card provider or cash on delivery.
+CommerceOS is an Angular storefront backed by an Express REST API and MongoDB. Admin includes dashboard, products/media/variants, categories, inventory audits, order fulfilment/refunds, customers, discounts, analytics and white-label settings. The implemented shopping path covers browsing 30 seeded products, category/search filters, product variants, wishlists, guest and account carts, discount codes, checkout, order confirmation, history and pending-order cancellation. Authentication is real and uses a rotating refresh session. Payments use the specified mock card provider or cash on delivery.
 
 ## Architecture
 
@@ -37,7 +37,7 @@ npm run dev
 
 The Angular dev server proxies `/api` to the API. The local MongoDB URI in `.env.example` uses `directConnection=true` so it can reach a replica-set container whose advertised host is `mongo`.
 
-In development, the API creates the HALDEN store settings, five categories, 30 products with three variants each, and the `WELCOME10` discount code on startup if they are missing. Seeded product art is local under `apps/web/public/assets/products`. To reset only catalogue/settings/discount demo data in a disposable development database, use `npm run seed:reset`; do not run that command against a database containing data you need. In production, seed explicitly with `npm run seed` after configuring the environment.
+In development, the API creates the HALDEN store settings, five categories, 30 products with three variants each, and the `WELCOME10` discount code on startup if they are missing. Seeded product art is local under `apps/web/public/assets/products`. To replace catalogue, settings, discounts, users, carts, orders and inventory audit demo data in a disposable development database, use `npm run seed:reset`; do not run that command against a database containing data you need. In production, seed explicitly with `npm run seed` after configuring the environment.
 
 ### Try the storefront
 
@@ -96,7 +96,7 @@ The API limits authentication requests to 10 per 15 minutes per IP, so use a fre
 | `apps/api`        | Express API, MongoDB connection, validation, logging, errors, OpenAPI                 |
 | `packages/shared` | Dependency-free enums and DTO interfaces                                              |
 
-`npm run build`, `npm run lint`, and `npm test` run across workspaces. GitHub Actions also installs Chromium and runs `npm run test:e2e`. `npm run docker:up` and `npm run docker:down` manage Compose. `npm run seed` fills missing demo catalogue data; `npm run seed:reset` replaces it in a disposable development database.
+`npm run build`, `npm run lint`, and `npm test` run across workspaces. GitHub Actions also installs Chromium and runs `npm run test:e2e`. `npm run docker:up` and `npm run docker:down` manage Compose. `npm run seed` fills missing catalogue data and the admin sales dataset; `npm run seed:reset` replaces it in a disposable development database.
 
 ## Environment
 
@@ -104,7 +104,7 @@ See `.env.example` for all variables. `MONGODB_URI`, CORS origins, web base URL,
 
 ## Testing and current scope
 
-Run `npm run lint`, `npm run build`, and `npm test` from the repository root, matching GitHub Actions. API integration tests use `mongodb-memory-server` and may download a MongoDB binary on the first run; they do not need a separately running MongoDB. Docker is required to verify the full Phase 0 clean-clone exit criterion. Demo customer accounts are created through registration; no account password is shipped. The supplied design brief is in `docs/`; keep the confidential engineering specification outside a public repository. See `IMPLEMENTATION_CHECKLIST.md` for remaining phase gates and `DECISIONS.md` for implementation decisions.
+Run `npm run lint`, `npm run build`, and `npm test` from the repository root, matching GitHub Actions. API integration tests use `mongodb-memory-server` and may download a MongoDB binary on the first run; they do not need a separately running MongoDB. Docker is required to verify the full Phase 0 clean-clone exit criterion. Explicit demo seeding creates the development-only accounts below; public accounts are created through registration. The supplied design brief is in `docs/`; keep the confidential engineering specification outside a public repository. See `IMPLEMENTATION_CHECKLIST.md` for remaining phase gates and `DECISIONS.md` for implementation decisions.
 
 For real-browser checkout tests:
 
@@ -116,3 +116,50 @@ npm run test:e2e
 Keep ports 4000 and 4200 free. Playwright starts Angular, Express and a disposable MongoDB replica set, creates its own accounts, and stops them afterwards. It never uses your development database. On Linux, use `npx playwright install --with-deps chromium`. An installed Chrome can be used on Windows with `$env:PLAYWRIGHT_CHROME_CHANNEL='chrome'` before `npm run test:e2e`. If you already have a suitable MongoDB binary, `MONGOMS_SYSTEM_BINARY` can point to it to avoid the first download. First-run MongoDB downloads can be large; a download/setup timeout is separate from a checkout test failure.
 
 The adversarial checkout coverage and specification mapping are in `docs/CHECKOUT_REVIEW.md`. Tests cover payment decline, partial-write rollback, last-unit concurrency, duplicate and lost-response submissions, cart/order races, discount limits/release, immutable snapshots and order ownership.
+
+## Admin portfolio demo
+
+With a development MongoDB replica set running, run from the repository root:
+
+```sh
+npm run seed
+npm run dev
+```
+
+For Compose use `docker compose exec api npm run seed`. Startup alone does not create administrator credentials or sales history. Explicit seeding creates 40 customers and 120 historical orders across all six states through the real order services. It is repeatable without duplicating orders/movements. Use a demo database; `npm run seed:reset` destroys the data listed above.
+
+| Role     | Email                | Demo password  |
+| -------- | -------------------- | -------------- |
+| Admin    | admin@halden.test    | Admin#12345    |
+| Customer | customer@halden.test | Customer#12345 |
+
+These are public demo credentials. Do not seed them into production. Sign in at `/login`, then open `/admin`.
+
+### Customer: Discover -> Purchase -> Order
+
+Browse `/shop`, select a variant, add it to the cart, sign in, choose an address/shipping/payment, review and place an order. Confirmation/tracking appear in `/account/orders`. Payments use mock cards or COD, with no real money processed.
+
+### Admin: Create -> Stock -> Sell -> Fulfil -> Analyse
+
+1. **Products -> Create product:** enter details/category, upload images, set alt text/primary/order, define up to three option axes and generate variants.
+2. Set unique SKUs, integer prices in minor units (`15000` = USD $150), stock/thresholds, specifications and SEO. Choose **Active** and save. The real storefront displays the product.
+3. **Inventory:** search its SKU, adjust stock with a reason/note and inspect movement history. Negative stock is rejected; stock and audit commit together.
+4. Purchase it as a customer using COD. **Orders:** mark paid, enter carrier/tracking, ship, then complete. Cancellation/refund use confirmations and legal transitions; invalid transitions return `409 INVALID_STATE_TRANSITION`.
+5. **Analytics:** view product/category sales, customers and discounts; export filtered CSV. Dashboard KPIs compare against the previous equal-length period.
+6. **Settings:** change name, theme, contacts, currency, tax, shipping and feature flags, then save. **View storefront** reflects your brand. Future quotes use saved settings; old orders retain snapshots. Currency changes denomination/display without foreign-exchange conversion.
+
+`UPLOAD_DIR` must be writable. Local uploads accept JPEG/PNG/WebP with matching extension, MIME and magic bytes, up to 5 MB per image and 10 files per upload. Angular and Nginx proxy `/uploads`. MongoDB transactions require a replica set; payments, email and storage use provider interfaces.
+
+`npm run test:e2e` runs customer/admin suites with separate fresh API/MongoDB instances, retaining the real authentication rate limit. It verifies publication, purchases, fulfilment, analytics, branding and dashboard layouts at 360/768/1024/1440 px. Reports are under `playwright-report/checkout` and `playwright-report/admin`. Acceptance evidence and remaining release gates: `docs/ADMIN_REVIEW.md`.
+
+Browser suite scratch directories live under ignored `node_modules/.cache/commerceos-e2e` and are removed after each suite. This avoids leaked temporary MongoDB data exhausting the system drive on Windows.
+
+## UI design and visual checks
+
+The redesigned storefront and admin share the design brief's typography, tokens and settings-driven branding. Fonts are self-hosted with licenses under `apps/web/public/assets/fonts`. Research/design decisions: `docs/UI_REDESIGN.md`.
+
+`npm run test:e2e` runs customer, admin and visual UI suites. To run one suite use `npm run test:e2e -- --suite=ui` (or `checkout` / `admin`). The UI suite checks Home, Catalogue, Product, Register and guest Cart at responsive widths, captures screenshots, and verifies API-error recovery. Reports: `playwright-report/ui`; screenshots: ignored `test-results/`. Each suite has a fresh disposable replica set and automatically cleaned scratch files.
+
+## Commit messages
+
+Commit messages are free-form; prefixes such as `feat:` and `chore:` are optional. The pre-commit hook still formats staged files with lint-staged/Prettier.

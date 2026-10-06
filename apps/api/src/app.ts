@@ -29,6 +29,7 @@ import { createWishlistRouter } from '@api/modules/wishlist/wishlist.routes.js';
 import { createCartRouter } from '@api/modules/cart/cart.routes.js';
 import { createOrderRouters } from '@api/modules/orders/orders.routes.js';
 import type { OrderDependencies } from '@api/modules/orders/orders.service.js';
+import { createAdminRouter } from '@api/modules/admin/admin.routes.js';
 
 const openApi = parse(readFileSync(resolve(process.cwd(), 'docs/openapi.yaml'), 'utf8')) as object;
 
@@ -90,6 +91,7 @@ export function createApp(
       '/api/v1/checkout',
       '/api/v1/orders',
       '/api/v1/admin/orders',
+      '/api/v1/admin',
     ],
     (_request, response, next) => {
       response.setHeader('Cache-Control', 'no-store');
@@ -118,6 +120,11 @@ export function createApp(
   app.use('/api/v1/checkout', orderRouters.checkout);
   app.use('/api/v1/orders', orderRouters.orders);
   app.use('/api/v1/admin/orders', orderRouters.admin);
+  app.use('/api/v1/admin', createAdminRouter(config));
+  app.use(
+    '/uploads',
+    express.static(resolve(config.UPLOAD_DIR), { dotfiles: 'deny', index: false }),
+  );
   app.use('/api/v1/system', systemRouter);
   app.use(notFound);
   app.use(errorHandler);

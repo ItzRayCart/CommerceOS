@@ -1,5 +1,9 @@
 module.exports = {
   preset: 'ts-jest',
+  transform: { '^.+\\.tsx?$': 'ts-jest', '^.+\\.js$': '<rootDir>/jest-esm-transform.cjs' },
+  transformIgnorePatterns: [
+    'node_modules/(?!sanitize-html/node_modules/|htmlparser2/|domhandler/|domutils/|domelementtype/|entities/|dom-serializer/)',
+  ],
   testEnvironment: 'node',
   testMatch: ['**/*.test.ts'],
   moduleNameMapper: {

@@ -62,9 +62,11 @@ import { WishlistStore } from './wishlist-store';
         <section class="purchase">
           <p class="eyebrow">{{ item.brand }}</p>
           <h1>{{ item.name }}</h1>
-          <p class="muted">
-            {{ item.ratingAverage.toFixed(1) }} / 5 · {{ item.ratingCount }} reviews
-          </p>
+          @if (settings.data()?.features?.reviews) {
+            <p class="muted">
+              {{ item.ratingAverage.toFixed(1) }} / 5 · {{ item.ratingCount }} reviews
+            </p>
+          }
           @if (variant(); as selected) {
             <p class="price">
               {{ settings.formatMoney(selected.price) }}
@@ -134,7 +136,7 @@ import { WishlistStore } from './wishlist-store';
       </div>
       <section class="details">
         <h2>Made for the everyday</h2>
-        <p>{{ item.description }}</p>
+        <div class="product-description" [innerHTML]="item.description"></div>
         <h3>Specifications</h3>
         <dl>
           @for (spec of item.specs; track spec.label) {
@@ -161,144 +163,7 @@ import { WishlistStore } from './wishlist-store';
       <button (click)="load()">Try again</button> <a routerLink="/shop">Browse the collection</a>
     }
   </main>`,
-  styles: [
-    `
-      .crumb {
-        font-size: 0.85rem;
-        color: var(--color-muted);
-        margin-bottom: 2rem;
-      }
-      .product-layout {
-        display: grid;
-        grid-template-columns: 1.35fr 1fr;
-        gap: 4rem;
-      }
-      .purchase {
-        position: sticky;
-        top: 7rem;
-        align-self: start;
-      }
-      .hero-image {
-        padding: 0;
-        border: 0;
-        display: block;
-        width: 100%;
-        overflow: hidden;
-        background: var(--color-border);
-      }
-      img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-      }
-      .thumbnails {
-        display: flex;
-        gap: 0.75rem;
-        margin-top: 1rem;
-      }
-      .thumbnails button {
-        padding: 0;
-        border: 2px solid transparent;
-        overflow: hidden;
-        background: var(--color-surface);
-      }
-      [aria-pressed='true'] {
-        border-color: var(--color-accent) !important;
-      }
-      .price {
-        font-size: 1.5rem;
-      }
-      del {
-        font-size: 1rem;
-        color: var(--color-muted);
-        margin-left: 1rem;
-      }
-      fieldset {
-        border: 0;
-        padding: 0;
-        margin: 1.5rem 0;
-      }
-      .choices {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-        flex-wrap: wrap;
-      }
-      .option,
-      .secondary {
-        background: var(--color-surface);
-        color: var(--color-ink);
-        border-color: var(--color-border);
-      }
-      .stock {
-        color: var(--color-success);
-      }
-      .unavailable,
-      [role='alert'] {
-        color: var(--color-danger);
-      }
-      label {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-      }
-      input {
-        width: 5rem;
-      }
-      .add,
-      .secondary {
-        display: block;
-        width: 100%;
-        margin-top: 1rem;
-      }
-      .details {
-        max-width: 50rem;
-        margin: 5rem 0;
-      }
-      dl div {
-        display: flex;
-        justify-content: space-between;
-        border-bottom: 1px solid var(--color-border);
-        padding: 1rem 0;
-        gap: 1rem;
-      }
-      dd {
-        margin: 0;
-        color: var(--color-muted);
-      }
-      .related {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1.5rem;
-      }
-      dialog {
-        max-width: 90vw;
-        max-height: 90vh;
-        border: 0;
-        border-radius: var(--radius-card);
-        background: var(--color-surface);
-      }
-      dialog img {
-        max-height: 75vh;
-        object-fit: contain;
-      }
-      .loading {
-        height: 35rem;
-      }
-      @media (max-width: 768px) {
-        .product-layout {
-          grid-template-columns: 1fr;
-          gap: 2rem;
-        }
-        .purchase {
-          position: static;
-        }
-        .related {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-    `,
-  ],
+  styleUrl: './product-page.component.scss',
 })
 export class ProductPageComponent {
   private readonly api = inject(CatalogApi);

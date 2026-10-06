@@ -15,17 +15,19 @@ import {
   adminParams,
   statusSchema,
 } from './orders.schemas.js';
+import { refundSchema } from '@api/modules/admin/admin.schemas.js';
+import { asyncHandler } from '@api/common/middleware/async-handler.js';
+import { transitionOrder } from './order-transitions.service.js';
 import type { OrderDependencies } from './orders.service.js';
 const empty = z.strictObject({});
 export function createOrderRouters(config: Env, logger: Logger, override?: OrderDependencies) {
-  const controller = createOrdersController(
-    override ?? {
-      payment: new MockPaymentProvider(),
-      mail: createMailProvider(config, logger),
-      logger,
-      webBaseUrl: config.WEB_BASE_URL,
-    },
-  );
+  const deps = override ?? {
+    payment: new MockPaymentProvider(),
+    mail: createMailProvider(config, logger),
+    logger,
+    webBaseUrl: config.WEB_BASE_URL,
+  };
+  const controller = createOrdersController(deps);
   const checkout = Router();
   checkout.use(authenticate(config), requirePermission('read-own-account'));
   checkout.post('/quote', validate({ body: quoteSchema, query: empty }), controller['quote']!);
@@ -49,6 +51,22 @@ export function createOrderRouters(config: Env, logger: Logger, override?: Order
     '/:id/status',
     validate({ params: adminParams, body: statusSchema, query: empty }),
     controller['adminStatus']!,
+  );
+  admin.post(
+    '/:id/refund',
+    validate({ params: adminParams, body: refundSchema, query: empty }),
+    asyncHandler(async (req, res) => {
+      const params = req.validated?.['params'] as { id: string };
+      const input = req.validated?.['body'] as { restock: boolean };
+      res.json({
+        data: await transitionOrder(
+          req.auth!.userId,
+          { _id: params.id },
+          { status: 'refunded', restock: input.restock },
+          deps,
+        ),
+      });
+    }),
   );
   return { checkout, orders, admin };
 }

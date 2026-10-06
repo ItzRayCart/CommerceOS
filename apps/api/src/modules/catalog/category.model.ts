@@ -16,7 +16,7 @@ export interface Category {
 const categorySchema = new Schema<Category>(
   {
     name: { type: String, required: true, trim: true, minlength: 2, maxlength: 100 },
-    slug: { type: String, required: true, immutable: true },
+    slug: { type: String, required: true },
     parent: { type: Schema.Types.ObjectId, ref: 'Category' },
     description: { type: String, maxlength: 1000 },
     image: String,

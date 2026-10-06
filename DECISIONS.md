@@ -54,3 +54,30 @@ No phase has shipped. At each completed phase, add its date, shipped scope, devi
 - **Decision:** The cart shows estimated shipping and tax using the first active shipping method. Checkout is left visible with an explicit unavailable message until the checkout/order module supplies address and shipping selection. **Reason:** The requested Batch C ends at cart totals; claiming an order can be placed would mislead shoppers.
 - **Decision:** Add `<base href="/">` to the Angular document. **Reason:** A browser pass found that direct links such as `/products/:slug?variant=...` otherwise resolved `main.js` relative to `/products/` and rendered a blank page.
 - **Status:** Batch A API, seeded data and pages; Batch B product detail/gallery/stock/wishlist; and Batch C guest/account cart, merge, discounts and totals are implemented. The MongoDB API suite passed 22 tests with 88.16% line coverage, and the Angular suite passed four tests at the last full run. Browser verification covered direct SKU links, guest persistence, login merge, `WELCOME10` totals and wishlist add/remove counts. Full Phase 2 and Phase 3 exit gates remain open for the specification's Lighthouse, index-plan, formal E2E and all acceptance coverage. No phase completion tag has been created.
+
+## 2026-10-04 - Admin catalogue, sales, insight and settings
+
+- **Architecture:** Angular standalone lazy routes, OnPush/signals/reactive forms, shared strict DTOs, thin Express controllers/domain services, npm workspaces and transactional MongoDB remain the specified stack.
+- **Charts:** Use the specification's hand-written SVG option with accessible labels and tabular metrics, avoiding an additional chart bundle.
+- **Dependencies:** Add specified `multer`, `sanitize-html` and their type declarations. UUID local media uses StorageProvider. Jest 29 requires a narrow ESM-to-CommonJS parser-dependency transformer for sanitizer tests; lint rules and application builds are unchanged.
+- **Stock:** Preserve variant IDs; deactivate existing variants instead of removing them. Both product and variant saves compare the original updatedAt to reject stale editors. Stock changes and movements commit together.
+- **Discounts:** Retain historical redemptions when deleting codes; reject reuse of redeemed deleted codes to avoid resetting historical usage. Existing codes remain immutable.
+- **Authorization:** Admin routers authenticate/authorize before validation. Role/status changes lock active administrators together in a transaction, protecting the last admin against concurrent removals. Self demotion/disable is rejected.
+- **Settings:** Persist branding/theme/currency/tax/shipping in MongoDB. Optional branding accepts blank values; configured currency symbols are respected; discarded previews restore saved colours. Existing orders retain snapshots.
+- **Browser tests:** Separate disposable server/database lifecycles for independent suites prevent their combined auth traffic exhausting the real 10-per-15-minute quota. No application limit is weakened.
+- **Seed:** Explicit seeding adds public demo accounts, 40 customers, ten child categories, two draft/one archived products and 120 dated orders using real checkout/transitions. Idempotency, stock audits and customer statistics are integration-tested. Full-spec reviews seed depends on the Phase 8 review module and remains an open gate.
+- **Verification:** See docs/ADMIN_REVIEW.md. Full Docker/Lighthouse/latency/a11y release certification remains open. No commit, push or release tag is created.
+
+Browser suite scratch directories live under ignored `node_modules/.cache/commerceos-e2e` and are removed after each suite. This avoids leaked temporary MongoDB data exhausting the system drive on Windows.
+
+## 2026-10-06 - UI redesign
+
+- Follow the existing restrained product-first brief. Reference research used official Apple, Bellroy and Nothing pages; design tradeoffs are assessments rather than measured conversion claims. See docs/UI_REDESIGN.md.
+- Separate desktop category navigation from search/account/cart. Keep mobile search and accessible icon labels. Use one shared SVG icon component, a light product-led home hero and consistent product/forms/admin surfaces.
+- Self-host Latin Inter and Space Grotesk WOFF2 subsets with SIL OFL notices. Original sources are Google Fonts' ofl/inter and ofl/spacegrotesk directories on GitHub. fontTools/Brotli were used only from an ignored conversion cache; no runtime application dependency was added.
+- Extract component-scoped styles into SCSS; retain settings-driven brand/theme/currency and all commerce/admin APIs. Hover treatment preserves secondary-button contrast rather than forcing every button to a dark background.
+- Add responsive visual regression/screenshots and API Retry/guest-cart coverage. Keep backend pricing, authentication/session rules and admin permissions intact. User continues to own commits/pushes.
+
+## 2026-10-07 - Free-form commit messages
+
+At the project owner's request, remove the Husky commit-msg hook that enforced Conventional Commits. Commit messages no longer require type prefixes. Pre-commit formatting and CI lint/build/test checks remain active. This user preference overrides the original specification's commit-message tooling requirement.

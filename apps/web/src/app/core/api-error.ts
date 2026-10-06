@@ -1,4 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
+export function getApiError(error: unknown): { message: string; details: unknown } {
+  let details: unknown;
+  if (error instanceof HttpErrorResponse) {
+    const body: unknown = error.error;
+    if (body && typeof body === 'object' && 'error' in body) {
+      const value: unknown = body.error;
+      if (value && typeof value === 'object' && 'details' in value) details = value.details;
+    }
+  }
+  return { message: errorMessage(error), details };
+}
 
 export function errorMessage(
   error: unknown,

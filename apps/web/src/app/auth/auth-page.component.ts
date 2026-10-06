@@ -91,58 +91,20 @@ import { errorMessage } from '@web/core/api-error';
           {{ busy() ? 'Please wait…' : title() }}
         </button>
       </form>
-      <nav>
-        <a routerLink="/login">Login</a> · <a routerLink="/register">Register</a> ·
-        <a routerLink="/forgot-password">Forgot password?</a>
+      <nav aria-label="Account help">
+        @if (mode !== 'login') {
+          <a routerLink="/login">Login</a>
+        }
+        @if (mode !== 'register') {
+          <a routerLink="/register">Create an account</a>
+        }
+        @if (mode === 'login') {
+          <a routerLink="/forgot-password">Forgot password?</a>
+        }
       </nav>
     </main>
   `,
-  styles: [
-    `
-      .auth-page {
-        max-width: 30rem;
-        margin: 4rem auto;
-        padding: 2rem;
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-card);
-        box-shadow: var(--shadow-soft);
-      }
-      .brand {
-        font-family: var(--font-display);
-        font-weight: 700;
-        letter-spacing: 0.12em;
-      }
-      h1 {
-        margin: 0.4rem 0 2rem;
-      }
-      form,
-      label {
-        display: grid;
-        gap: 0.5rem;
-      }
-      form {
-        gap: 1rem;
-      }
-      form > button {
-        width: 100%;
-      }
-      input {
-        width: 100%;
-      }
-      nav {
-        margin-top: 1.5rem;
-      }
-      [role='alert'] {
-        color: var(--color-danger);
-        margin: 0;
-      }
-      .field-error {
-        font-size: 0.82rem;
-        margin: -0.7rem 0 0;
-      }
-    `,
-  ],
+  styleUrl: './auth-page.component.scss',
 })
 export class AuthPageComponent {
   private readonly session = inject(AuthStore);

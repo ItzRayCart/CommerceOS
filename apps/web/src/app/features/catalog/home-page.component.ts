@@ -31,17 +31,28 @@ import { errorMessage } from '@web/core/api-error';
       } @else {
         <section class="home__hero">
           <div class="home__hero-copy">
-            <span class="eyebrow">New perspective on the everyday</span>
+            <span class="eyebrow">For the way you live</span>
             <h1>{{ settings.data()?.store?.tagline }}</h1>
-            <p>Explore purposeful technology chosen for the way you live and work.</p>
+            <p>
+              Thoughtful design. Everyday utility. Discover electronics that earn their place in
+              your life.
+            </p>
             <a class="home__hero-link" routerLink="/shop"
-              >Explore the collection <span aria-hidden="true">↗</span></a
+              >Explore the collection <span aria-hidden="true">→</span></a
             >
           </div>
           @if (featured()[0]?.primaryImage; as image) {
             <a [routerLink]="['/products', featured()[0]?.slug]" class="home__hero-image"
-              ><img [ngSrc]="image.url" [alt]="image.alt" width="1000" height="800" priority
-            /></a>
+              ><img [ngSrc]="image.url" [alt]="image.alt" width="1000" height="800" priority /><span
+                class="home__spotlight"
+                ><span
+                  ><small>In the spotlight</small><strong>{{ featured()[0]?.name }}</strong></span
+                ><span
+                  >{{ settings.formatMoney(featured()[0]?.priceFrom ?? 0) }}
+                  <span aria-hidden="true">↗</span></span
+                ></span
+              ></a
+            >
           }
         </section>
         <div class="page-container">
@@ -49,7 +60,7 @@ import { errorMessage } from '@web/core/api-error';
             <div class="home__section-heading">
               <div>
                 <span class="eyebrow">Selected pieces</span>
-                <h2 id="featured-title">Featured</h2>
+                <h2 id="featured-title">The considered selection.</h2>
               </div>
               <a routerLink="/shop">View all products →</a>
             </div>
@@ -155,135 +166,7 @@ import { errorMessage } from '@web/core/api-error';
       }
     </main>
   `,
-  styles: [
-    `
-      .home__hero {
-        max-width: 88rem;
-        margin: 1.25rem auto 0;
-        min-height: 31rem;
-        background: var(--color-ink);
-        color: var(--color-surface);
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        overflow: hidden;
-        border-radius: var(--radius-card);
-      }
-      .home__hero-copy {
-        padding: clamp(2rem, 5vw, 5rem);
-        align-self: center;
-      }
-      .home__hero-copy h1 {
-        max-width: 12ch;
-        font-size: clamp(2.5rem, 5vw, 5rem);
-        margin: 1rem 0;
-      }
-      .home__hero-copy p {
-        color: var(--color-on-dark-muted);
-        max-width: 35ch;
-      }
-      .home__hero-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 1.2rem;
-        margin-top: 1.4rem;
-        padding: 0.8rem 1.1rem;
-        border: 1px solid var(--color-surface);
-        border-radius: var(--radius-button);
-      }
-      .home__hero-image img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .home__section {
-        margin: 4.5rem 0;
-      }
-      .home__section-heading {
-        display: flex;
-        align-items: end;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-      }
-      .home__section-heading h2 {
-        margin: 0.35rem 0 0;
-      }
-      .home__section-heading a {
-        font-size: 0.9rem;
-      }
-      .home__grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1.25rem;
-      }
-      .home__card-skeleton {
-        aspect-ratio: 5 / 4;
-      }
-      .home__category-grid {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 1rem;
-      }
-      .home__category {
-        position: relative;
-        overflow: hidden;
-        border-radius: var(--radius-card);
-        background: var(--color-border);
-      }
-      .home__category img {
-        width: 100%;
-        height: 16rem;
-        object-fit: cover;
-        display: block;
-      }
-      .home__category span {
-        display: grid;
-        padding: 1rem;
-        background: var(--color-surface);
-      }
-      .home__category small {
-        color: var(--color-muted);
-        margin-top: 0.25rem;
-      }
-      .home__values {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
-        border-top: 1px solid var(--color-border);
-        padding: 2rem 0;
-      }
-      .home__values p {
-        color: var(--color-muted);
-      }
-      .home__state {
-        min-height: 50vh;
-      }
-      @media (max-width: 1024px) {
-        .home__grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .home__category-grid {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-      }
-      @media (max-width: 680px) {
-        .home__hero {
-          margin: 0.75rem;
-          grid-template-columns: 1fr;
-        }
-        .home__hero-image {
-          max-height: 16rem;
-        }
-        .home__category-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-        .home__values {
-          grid-template-columns: 1fr;
-        }
-      }
-    `,
-  ],
+  styleUrl: './home-page.component.scss',
 })
 export class HomePageComponent implements OnInit {
   readonly settings = inject(SettingsStore);

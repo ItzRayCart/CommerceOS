@@ -1,0 +1,231 @@
+<div class="toolbar">
+  <h1>{{ id ? 'Edit product' : 'Create product' }}</h1>
+  <a routerLink="/admin/products">All products</a>
+  @if (state.data(); as p) {
+    <a [routerLink]="['/products', p.slug]" target="_blank">Preview on storefront ↗</a>
+  }
+</div>
+<adm-feedback
+  [loading]="state.loading()"
+  [error]="state.error()"
+  [message]="state.feedback()"
+  (retry)="load()"
+/>
+@if (!id || (state.data() && !state.loading())) {
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <section class="panel">
+      <h2>Basics</h2>
+      <div class="grid">
+        <label
+          >Product name<input formControlName="name" required />
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <span class="field-error">Enter a name of at least two characters.</span>
+          }</label
+        ><label
+          >Slug (generated when blank)<input formControlName="slug" />
+          @if (state.fields()['slug']) {
+            <span class="field-error">{{ state.fields()['slug'] }}</span>
+          }</label
+        ><label>Brand<input formControlName="brand" placeholder="Defaults to store name" /></label
+        ><label
+          >Category<select formControlName="category" required>
+            <option value="">Choose category</option>
+            @for (c of categories(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select></label
+        >
+      </div>
+      <label>Description<textarea formControlName="description" required></textarea></label
+      ><label>Tags (comma separated)<input formControlName="tags" /></label>
+    </section>
+    <section class="panel">
+      <h2>Media</h2>
+      <p>
+        JPEG, PNG or WebP · 5 MB each · maximum 10 images. Drag to reorder, or use the move buttons.
+      </p>
+      <label
+        >Upload images<input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          [disabled]="uploaded()"
+          (change)="upload($event)"
+      /></label>
+      <div class="media-grid">
+        @for (image of images(); track image.url; let i = $index) {
+          <article
+            draggable="true"
+            (dragstart)="drag(i)"
+            (dragover)="$event.preventDefault()"
+            (drop)="drop(i, $event)"
+          >
+            <img [src]="image.url" [alt]="image.alt" width="160" height="120" /><label
+              >Image {{ i + 1 }} alt text<input [value]="image.alt" (input)="alt(i, $event)"
+            /></label>
+            <div class="actions">
+              <button type="button" (click)="primary(i)">
+                {{ image.isPrimary ? 'Primary' : 'Set primary' }}</button
+              ><button
+                type="button"
+                [disabled]="i === 0"
+                (click)="move(i, i - 1)"
+                [attr.aria-label]="'Move image ' + (i + 1) + ' earlier'"
+              >
+                ↑</button
+              ><button
+                type="button"
+                [disabled]="i === images().length - 1"
+                (click)="move(i, i + 1)"
+                [attr.aria-label]="'Move image ' + (i + 1) + ' later'"
+              >
+                ↓</button
+              ><button type="button" (click)="removeImage(i)">Remove</button>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Options and variants</h2>
+      <div formArrayName="options">
+        @for (option of form.controls.options.controls; track option; let i = $index) {
+          <div class="grid" [formGroupName]="i">
+            <label
+              >Option {{ i + 1 }} name<input
+                formControlName="name"
+                placeholder="Color, Size, Storage…" /></label
+            ><label
+              >Option {{ i + 1 }} values<input
+                formControlName="values"
+                placeholder="Comma separated values" /></label
+            ><button type="button" (click)="form.controls.options.removeAt(i)">
+              Remove option
+            </button>
+          </div>
+        }
+      </div>
+      <div class="actions">
+        <button type="button" [disabled]="form.controls.options.length === 3" (click)="addOption()">
+          Add option</button
+        ><button type="button" (click)="generate()">Generate variants</button>
+      </div>
+      <p>
+        Prices are integer minor units (for USD: 34900 = $349). Existing variants are retained when
+        disabled.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Combination</th>
+              <th>SKU</th>
+              <th>Price</th>
+              <th>Compare at</th>
+              <th>Stock</th>
+              <th>Low threshold</th>
+              <th>Active</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of variants(); track $index; let i = $index) {
+              <tr>
+                <td>{{ optionLabel(v) }}</td>
+                <td>
+                  <input
+                    [attr.aria-label]="'Variant ' + (i + 1) + ' SKU'"
+                    [value]="v.sku"
+                    (input)="variantValue(i, 'sku', $event)"
+                  />
+                  @if (state.fields()['variants.' + i + '.sku'] || state.fields()['variants.sku']) {
+                    <span class="field-error">SKU must be unique.</span>
+                  }
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [attr.aria-label]="'Variant ' + (i + 1) + ' price'"
+                    [value]="v.price"
+                    (input)="variantValue(i, 'price', $event)"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    [attr.aria-label]="'Variant ' + (i + 1) + ' compare at'"
+                    [value]="v.compareAtPrice ?? ''"
+                    (input)="variantValue(i, 'compareAtPrice', $event)"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    [attr.aria-label]="'Variant ' + (i + 1) + ' stock'"
+                    [value]="v.stock"
+                    (input)="variantValue(i, 'stock', $event)"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    [attr.aria-label]="'Variant ' + (i + 1) + ' threshold'"
+                    [value]="v.lowStockThreshold"
+                    (input)="variantValue(i, 'lowStockThreshold', $event)"
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    [attr.aria-label]="'Variant ' + (i + 1) + ' active'"
+                    [checked]="v.isActive"
+                    (change)="toggleVariant(i, $event)"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Specifications</h2>
+      <div formArrayName="specs">
+        @for (spec of form.controls.specs.controls; track spec; let i = $index) {
+          <div class="grid" [formGroupName]="i">
+            <label>Specification {{ i + 1 }} label<input formControlName="label" /></label
+            ><label>Specification {{ i + 1 }} value<input formControlName="value" /></label
+            ><button type="button" (click)="form.controls.specs.removeAt(i)">
+              Remove specification
+            </button>
+          </div>
+        }
+      </div>
+      <button type="button" (click)="addSpec()">Add specification</button>
+    </section>
+    <section class="panel">
+      <h2>SEO</h2>
+      <label>Meta title<input formControlName="metaTitle" maxlength="140" /></label
+      ><label
+        >Meta description<textarea formControlName="metaDescription" maxlength="320"></textarea>
+      </label>
+    </section>
+    <div class="save-bar">
+      <label
+        >Publication status<select formControlName="status">
+          <option value="draft">Draft</option>
+          <option value="active">Active / Published</option>
+          <option value="archived">Archived</option>
+        </select></label
+      ><label class="check"><input type="checkbox" formControlName="isFeatured" />Featured</label
+      ><button class="primary" [disabled]="state.busy() || uploaded()">
+        {{ state.busy() ? 'Saving…' : 'Save product' }}
+      </button>
+    </div>
+  </form>
+}

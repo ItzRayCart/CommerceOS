@@ -36,6 +36,9 @@ export class SettingsStore {
       style: 'currency',
       currency: currency.code,
       minimumFractionDigits: currency.decimals,
-    }).format(cents / 10 ** currency.decimals);
+    })
+      .formatToParts(cents / 10 ** currency.decimals)
+      .map((part) => (part.type === 'currency' ? currency.symbol : part.value))
+      .join('');
   }
 }

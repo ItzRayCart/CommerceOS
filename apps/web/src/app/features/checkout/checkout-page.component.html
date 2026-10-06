@@ -34,7 +34,8 @@
             [disabled]="i > step() || checkout.busy()"
             (click)="edit(i)"
           >
-            {{ i + 1 }}. {{ label }}
+            <span class="steps__number" aria-hidden="true">{{ i + 1 }}</span
+            >{{ label }}
           </button>
         </li>
       }

@@ -1,3 +1,4 @@
+import type * as CommerceSeedModule from '../apps/api/src/seed/commerce-seed.js';
 import type * as AppModule from '../apps/api/src/app.js';
 import type * as LoggerModule from '../apps/api/src/config/logger.js';
 import type * as SeedModule from '../apps/api/src/seed/catalog-seed.js';
@@ -20,6 +21,10 @@ const mongo = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
 await mongoose.connect(mongo.getUri());
 await Promise.all([OrderModel.init(), CounterModel.init(), StockMovementModel.init()]);
 await ensureCatalogSeed();
+const { ensureAccountsSeed } = requireApi(
+  '../apps/api/src/seed/commerce-seed.ts',
+) as typeof CommerceSeedModule;
+await ensureAccountsSeed();
 const config: Env = {
   NODE_ENV: 'test',
   PORT: 4000,

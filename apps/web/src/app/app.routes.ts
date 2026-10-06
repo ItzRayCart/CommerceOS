@@ -7,6 +7,7 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () =>
       import('@web/layout/admin-shell.component').then((module) => module.AdminShellComponent),
+    loadChildren: () => import('@web/features/admin/admin.routes').then((m) => m.adminRoutes),
   },
   {
     path: 'login',

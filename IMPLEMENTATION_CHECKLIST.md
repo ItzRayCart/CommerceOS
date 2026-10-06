@@ -68,26 +68,26 @@ Implementation sequence requested by the project owner:
 
 ## Phase 5 — Admin catalogue
 
-- [ ] Build admin shell, category CRUD, product list/create/edit/duplicate/archive/delete and variant matrix editor.
-- [ ] Add upload storage provider, MIME/magic-byte/size checks, image ordering/primary/alt text, and stock adjustment/movement history.
-- [ ] Build inventory filters and low-stock handling with atomic updates.
+- [x] Build admin shell, category CRUD, product list/create/edit/duplicate/archive/delete and variant matrix editor.
+- [x] Add upload storage provider, MIME/magic-byte/size checks, image ordering/primary/alt text, and stock adjustment/movement history.
+- [x] Build inventory filters and low-stock handling with atomic updates.
 - [ ] Test AC-ADMP-01..04, AC-INV-01..02, relevant BR-11/12/14, and E2E journey 5.
 - [ ] Exit: admin catalogue and inventory gates pass. AC-INV-02 dashboard panel is finished with Phase 7; inventory-side behavior passes here.
 
 ## Phase 6 — Admin sales
 
-- [ ] Implement admin orders list/detail/status transitions, shipping, refund/restock, internal notes, customers list/detail/status/role changes, discount code administration.
-- [ ] Enforce state machine, self/last-admin protection, ownership policy and transactional side effects.
-- [ ] Build admin orders/customers/discount pages with URL-backed filters, counts, forms, and legal action controls.
+- [x] Implement admin orders list/detail/status transitions, shipping, refund/restock, internal notes, customers list/detail/status/role changes, discount code administration.
+- [x] Enforce state machine, self/last-admin protection, ownership policy and transactional side effects.
+- [x] Build admin orders/customers/discount pages with URL-backed filters, counts, forms, and legal action controls.
 - [ ] Test AC-ADMO-01..04, AC-ADMC-01, discount admin behavior, delayed AC-CHK-06 and AC-RBAC-03/04, and E2E journey 4.
 - [ ] Exit: admin sales criteria and cross-phase acceptance items pass.
 
 ## Phase 7 — Insight and settings
 
-- [ ] Implement dashboard and analytics aggregation pipelines, indexed time series, KPIs/deltas, category/product/customer/discount metrics, and filtered CSV exports.
-- [ ] Implement full settings edit/public projection, runtime CSS theme, store identity, currency/tax/shipping behavior and feature toggles.
+- [x] Implement dashboard and analytics aggregation pipelines, indexed time series, KPIs/deltas, category/product/customer/discount metrics, and filtered CSV exports.
+- [x] Implement full settings edit/public projection, runtime CSS theme, store identity, currency/tax/shipping behavior and feature toggles.
 - [ ] Complete idempotent seed with approximately 40 customers, 120 coherent historical orders, 40 reviews, all specified discount states, and audit/aggregate consistency.
-- [ ] Build dashboard, analytics and settings pages; include low-stock dashboard panel.
+- [x] Build dashboard, analytics and settings pages; include low-stock dashboard panel.
 - [ ] Test AC-DASH-01..02, AC-ANA-01..02, AC-SET-01..02 and delayed AC-INV-02.
 - [ ] Exit: insight/settings gates pass against the full seed.
 
@@ -118,3 +118,7 @@ Implementation sequence requested by the project owner:
 - Sections 4.4 and 5.7 require denormalized `totalStock`/`minPrice` consistency. Atomic stock updates, variant edits, refunds and seeding must update these values within the relevant transaction.
 - Settings-driven brand and prices require a usable default settings document before catalogue and checkout flows; Docker seed/bootstrap must be idempotent.
 - Phase tags, phase branches, Docker CI, replica-set memory tests, browser E2E and Lighthouse require working external runtimes. Validate these gates explicitly; do not mark a phase complete merely because code builds.
+
+## 2026-10-04 verification update
+
+The four requested admin blocks are implemented. Integration/browser tests verify publication, stock audits, COD payment/fulfilment, analytics and saved branding. API line coverage: 90.99%, above the previous baseline. Evidence: docs/ADMIN_REVIEW.md. Full phase exits remain open for remaining global gates and complete specification seed/reviews requirements; implementation checkmarks do not declare a release.

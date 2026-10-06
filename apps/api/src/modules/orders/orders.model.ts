@@ -123,8 +123,9 @@ export interface StockMovement {
   sku: string;
   delta: number;
   stockAfter: number;
-  reason: 'order_placed' | 'order_cancelled' | 'refund_restock';
-  order: Types.ObjectId;
+  reason: 'order_placed' | 'order_cancelled' | 'refund_restock' | 'manual_adjustment' | 'restock';
+  order?: Types.ObjectId;
+  note?: string;
   by: Types.ObjectId;
   createdAt: Date;
 }
@@ -136,6 +137,7 @@ const movement = new Schema<StockMovement>(
     delta: Number,
     stockAfter: { type: Number, min: 0 },
     reason: String,
+    note: String,
     order: Schema.Types.ObjectId,
     by: Schema.Types.ObjectId,
   },

@@ -43,7 +43,7 @@ const methodSchema = new Schema<ShippingMethod>(
   { _id: false },
 );
 const valuePropSchema = new Schema<{ title: string; text: string }>(
-  { title: { type: String, required: true }, text: { type: String, required: true } },
+  { title: { type: String, required: true }, text: { type: String, default: '' } },
   { _id: false },
 );
 const settingsSchema = new Schema<Settings>(
@@ -51,12 +51,12 @@ const settingsSchema = new Schema<Settings>(
     key: { type: String, enum: ['store'], required: true, unique: true },
     store: {
       name: { type: String, required: true },
-      tagline: { type: String, required: true },
-      logoUrl: { type: String, required: true },
+      tagline: { type: String, default: '' },
+      logoUrl: { type: String, default: '' },
       supportEmail: { type: String, required: true },
-      phone: { type: String, required: true },
-      address: { type: String, required: true },
-      announcement: { type: String, required: true },
+      phone: { type: String, default: '' },
+      address: { type: String, default: '' },
+      announcement: { type: String, default: '' },
       valueProps: { type: [valuePropSchema], default: [] },
     },
     currency: {

@@ -144,49 +144,7 @@ function emptyAddress() {
       }
     </main>
   `,
-  styles: [
-    `
-      .account {
-        max-width: 56rem;
-        margin: 2rem auto;
-        padding: 1.5rem;
-      }
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      section {
-        margin: 2rem 0;
-        padding: 1.5rem;
-        border: 1px solid var(--color-border);
-      }
-      form {
-        display: grid;
-        gap: 1rem;
-        max-width: 30rem;
-      }
-      label {
-        display: grid;
-        gap: 0.35rem;
-      }
-      input,
-      button {
-        font: inherit;
-        padding: 0.55rem;
-      }
-      article {
-        padding: 1rem 0;
-        border-bottom: 1px solid var(--color-border);
-      }
-      article button {
-        margin-right: 0.5rem;
-      }
-      [role='alert'] {
-        color: #9c1d1d;
-      }
-    `,
-  ],
+  styleUrl: './account-page.component.scss',
 })
 export class AccountPageComponent implements OnInit {
   readonly session = inject(AuthStore);

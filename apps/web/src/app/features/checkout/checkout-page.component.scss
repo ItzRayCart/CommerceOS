@@ -119,3 +119,63 @@ address {
     align-self: start;
   }
 }
+
+.steps {
+  counter-reset: checkout;
+  gap: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1.5rem;
+}
+.steps li {
+  flex: 1;
+  min-width: 7rem;
+}
+.steps button {
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.85rem;
+}
+.steps__number {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+}
+.steps .current {
+  box-shadow: none;
+  font-weight: 650;
+}
+.steps .current .steps__number {
+  background: var(--color-ink);
+  color: var(--color-surface);
+  border-color: var(--color-ink);
+}
+.choice:has(input:checked) {
+  border-color: var(--color-ink);
+  background: var(--color-subtle);
+}
+.panel {
+  padding: 2rem;
+}
+.summary {
+  box-shadow: var(--shadow-soft);
+}
+.panel h2 {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+@media (max-width: 480px) {
+  .panel {
+    padding: 1.25rem;
+  }
+  .steps button {
+    font-size: 0.75rem;
+    padding: 0.6rem 0.25rem;
+  }
+}

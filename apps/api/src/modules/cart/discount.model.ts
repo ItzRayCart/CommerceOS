@@ -1,5 +1,6 @@
 import { model, Schema, type Types } from 'mongoose';
 export interface Discount {
+  description?: string;
   code: string;
   type: 'percentage' | 'fixed';
   value: number;
@@ -24,6 +25,7 @@ export const DiscountModel = model<Discount>(
         uppercase: true,
         match: /^[A-Z0-9_-]{3,32}$/,
       },
+      description: { type: String, default: '' },
       type: { type: String, required: true, enum: ['percentage', 'fixed'] },
       value: {
         type: Number,
