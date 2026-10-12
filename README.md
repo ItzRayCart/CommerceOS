@@ -1,11 +1,11 @@
 # CommerceOS
 
-CommerceOS is an Angular storefront backed by an Express REST API and MongoDB. Admin includes dashboard, products/media/variants, categories, inventory audits, order fulfilment/refunds, customers, discounts, analytics and white-label settings. The implemented shopping path covers browsing 30 seeded products, category/search filters, product variants, wishlists, guest and account carts, discount codes, checkout, order confirmation, history and pending-order cancellation. Authentication is real and uses a rotating refresh session. Payments use the specified mock card provider or cash on delivery.
+CommerceOS is an Angular storefront backed by an Express REST API and MongoDB. Admin includes dashboard, products/media/variants, categories, inventory audits, order fulfilment/refunds, customers, discounts, analytics and white-label settings. The implemented shopping path covers browsing 60 seeded products, category/search filters, product variants, wishlists, guest and account carts, discount codes, checkout, order confirmation, history and pending-order cancellation. Authentication is real and uses a rotating refresh session. Payments use the specified mock card provider or cash on delivery.
 
 ## Architecture
 
 ```text
-Angular SPA (apps/web) → /api/v1 → Express (apps/api) → MongoDB replica set
+Angular SPA (Frontend) → /api/v1 → Express (Backend) → MongoDB replica set
                                 ↘ shared DTOs/enums (packages/shared)
 ```
 
@@ -37,7 +37,7 @@ npm run dev
 
 The Angular dev server proxies `/api` to the API. The local MongoDB URI in `.env.example` uses `directConnection=true` so it can reach a replica-set container whose advertised host is `mongo`.
 
-In development, the API creates the HALDEN store settings, five categories, 30 products with three variants each, and the `WELCOME10` discount code on startup if they are missing. Seeded product art is local under `apps/web/public/assets/products`. To replace catalogue, settings, discounts, users, carts, orders and inventory audit demo data in a disposable development database, use `npm run seed:reset`; do not run that command against a database containing data you need. In production, seed explicitly with `npm run seed` after configuring the environment.
+In development, the API creates the HALDEN store settings, five categories, 30 products with three variants each, and the `WELCOME10` discount code on startup if they are missing. Seeded product art is local under `Frontend/public/assets/products`. To replace catalogue, settings, discounts, users, carts, orders and inventory audit demo data in a disposable development database, use `npm run seed:reset`; do not run that command against a database containing data you need. In production, seed explicitly with `npm run seed` after configuring the environment.
 
 ### Try the storefront
 
@@ -64,7 +64,7 @@ Use a future `MM/YY` expiry and any three-digit CVC. Luhn, expiry and CVC are va
 
 `POST /api/v1/orders` requires an `Idempotency-Key` header (8–128 letters, digits, underscores or hyphens). Retries for the same user/key return the original order, including after cart clearing. After a connection/server failure, checkout preserves the key and exact token-only payload in session storage and offers **Check pending order**. Keep that key when retrying an API call whose outcome is uncertain. A confirmed payment/validation failure allows a corrected new submission. Confirmation emails use `MAIL_TRANSPORT=console` locally or the existing SMTP settings; email failure does not undo a committed order.
 
-Catalogue data comes from `GET /api/v1/settings/public`, `/categories`, `/products`, `/products/suggest`, and `/products/:slug`. Product images are bundled locally. The implemented endpoint contract is at `/api/docs` and `apps/api/docs/openapi.yaml`.
+Catalogue data comes from `GET /api/v1/settings/public`, `/categories`, `/products`, `/products/suggest`, and `/products/:slug`. Product images are bundled locally. The implemented endpoint contract is at `/api/docs` and `Backend/docs/openapi.yaml`.
 
 ### Try authentication yourself
 
@@ -92,15 +92,15 @@ The API limits authentication requests to 10 per 15 minutes per IP, so use a fre
 
 | Workspace         | Purpose                                                                               |
 | ----------------- | ------------------------------------------------------------------------------------- |
-| `apps/web`        | Angular standalone SPA, lazy storefront/admin shells, design tokens, typed API client |
-| `apps/api`        | Express API, MongoDB connection, validation, logging, errors, OpenAPI                 |
+| `Frontend`        | Angular standalone SPA, lazy storefront/admin shells, design tokens, typed API client |
+| `Backend`         | Express API, MongoDB connection, validation, logging, errors, OpenAPI                 |
 | `packages/shared` | Dependency-free enums and DTO interfaces                                              |
 
 `npm run build`, `npm run lint`, and `npm test` run across workspaces. GitHub Actions also installs Chromium and runs `npm run test:e2e`. `npm run docker:up` and `npm run docker:down` manage Compose. `npm run seed` fills missing catalogue data and the admin sales dataset; `npm run seed:reset` replaces it in a disposable development database.
 
 ## Environment
 
-See `.env.example` for all variables. `MONGODB_URI`, CORS origins, web base URL, upload directory, logging level, mail transport and auth TTLs are read only in `apps/api/src/config/env.ts` and validated at startup. The Angular API base URL is `/api/v1`.
+See `.env.example` for all variables. `MONGODB_URI`, CORS origins, web base URL, upload directory, logging level, mail transport and auth TTLs are read only in `Backend/src/config/env.ts` and validated at startup. The Angular API base URL is `/api/v1`.
 
 ## Testing and current scope
 
@@ -113,7 +113,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Keep ports 4000 and 4200 free. Playwright starts Angular, Express and a disposable MongoDB replica set, creates its own accounts, and stops them afterwards. It never uses your development database. On Linux, use `npx playwright install --with-deps chromium`. An installed Chrome can be used on Windows with `$env:PLAYWRIGHT_CHROME_CHANNEL='chrome'` before `npm run test:e2e`. If you already have a suitable MongoDB binary, `MONGOMS_SYSTEM_BINARY` can point to it to avoid the first download. First-run MongoDB downloads can be large; a download/setup timeout is separate from a checkout test failure.
+Keep test ports 4400 and 4500 free. Your development app can continue using 4000 and 4200. Playwright starts Angular, Express and a disposable MongoDB replica set, creates its own accounts, and stops them afterwards. It never uses your development database. On Linux, use `npx playwright install --with-deps chromium`. An installed Chrome can be used on Windows with `$env:PLAYWRIGHT_CHROME_CHANNEL='chrome'` before `npm run test:e2e`. If you already have a suitable MongoDB binary, `MONGOMS_SYSTEM_BINARY` can point to it to avoid the first download. First-run MongoDB downloads can be large; a download/setup timeout is separate from a checkout test failure.
 
 The adversarial checkout coverage and specification mapping are in `docs/CHECKOUT_REVIEW.md`. Tests cover payment decline, partial-write rollback, last-unit concurrency, duplicate and lost-response submissions, cart/order races, discount limits/release, immutable snapshots and order ownership.
 
@@ -156,10 +156,42 @@ Browser suite scratch directories live under ignored `node_modules/.cache/commer
 
 ## UI design and visual checks
 
-The redesigned storefront and admin share the design brief's typography, tokens and settings-driven branding. Fonts are self-hosted with licenses under `apps/web/public/assets/fonts`. Research/design decisions: `docs/UI_REDESIGN.md`.
+The redesigned storefront and admin share the design brief's typography, tokens and settings-driven branding. Fonts are self-hosted with licenses under `Frontend/public/assets/fonts`. Research/design decisions: `docs/UI_REDESIGN.md`.
 
 `npm run test:e2e` runs customer, admin and visual UI suites. To run one suite use `npm run test:e2e -- --suite=ui` (or `checkout` / `admin`). The UI suite checks Home, Catalogue, Product, Register and guest Cart at responsive widths, captures screenshots, and verifies API-error recovery. Reports: `playwright-report/ui`; screenshots: ignored `test-results/`. Each suite has a fresh disposable replica set and automatically cleaned scratch files.
 
 ## Commit messages
 
 Commit messages are free-form; prefixes such as `feat:` and `chore:` are optional. The pre-commit hook still formats staged files with lint-staged/Prettier.
+
+## Frontend, Backend and home collections
+
+Core application folders are `Frontend/` (Angular) and `Backend/` (Express/Mongoose). `packages/shared/` retains the shared DTO workspace; tests, infrastructure, tools and documentation remain at the root. Workspace names stay `@commerceos/web`, `@commerceos/api` and `@commerceos/shared`, so root npm commands are unchanged. After pulling the folder relocation, run `npm ci` to refresh workspace links.
+
+Home offers native horizontal scrolling (touch/trackpad, previous/next and keyboard arrows/Home/End), eight-item pages, Load more and View all. All eligible products are reachable through pagination; they are not all downloaded up front.
+
+- **Premium:** merchant-selected featured products. Use **Premium selection** in the product editor.
+- **Hot:** products listed in the last 30 days, with recorded ordered units and an available active variant.
+- **Best Selling:** positive recorded ordered units, highest first. This uses existing counters, not a paid-revenue report.
+
+Collection data is filtered by the backend using `GET /api/v1/products?collection=premium|hot|best-selling`. The catalogue retains the collection in its URL and supports filtering/pagination. Demo counters are seeded; real orders maintain production counters. Empty collections show an honest empty state.
+
+Persona review and before/after evidence: `docs/USER_TEST_REPORT_2026-10-07.md`. Run `npm run test:e2e -- --suite=rails` for collection controls, complete pagination, keyboard/mouse access, partial Retry and local HTTP timing samples. `--suite=audit` repeats the simulated shopper/merchant audit; it runs only against a disposable test database. Test uploads now live in the suite's owned scratch directory, not development uploads.
+
+## Account and expanded illustrations
+
+The account page shares the storefront header, typography and theme. It includes personal details, saved-address editing, default addresses, removal confirmation and password changes with inline validation. Visit `/account`, `/account/addresses`, or `/account?tab=security`. Password changes revoke refresh sessions and require signing in again.
+
+The demo catalogue contains **60 products, 180 colour variants and 480 local SVG illustrations**. The original 60 illustrations are preserved; each product has eight gallery views, including Graphite, Sand and Brass variations. These are stylised demo illustrations, not product photography. No AI-generated photos or remote image dependencies are used.
+
+To add missing demo products and illustration views to an existing development database:
+
+```sh
+npm run seed:catalog
+```
+
+This requires the Node/npm dependencies installed with `npm ci`, a valid root `.env` with `NODE_ENV=development`, and the configured MongoDB instance running. This command preserves existing prices, stock, product/variant identities, accounts, orders and custom uploaded media. It extends original demo galleries and repairs discarded demo photo URLs; it does not reset the database or create demo order history.
+
+Illustrations are committed assets; image-generation services and image encoder dependencies are unnecessary. To create any missing illustration files locally, run `node tools/generate-product-art.mjs`. Existing SVG files are never overwritten. Test the account workflow with `npm run test:e2e -- --suite=account`; it also runs in the full CI browser suite.
+
+Details and test evidence: [Account and catalogue review](docs/ACCOUNT_AND_CATALOGUE_REVIEW_2026-10-10.md).

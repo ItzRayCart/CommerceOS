@@ -6,12 +6,14 @@ import { resolve, join, relative, isAbsolute } from 'node:path';
 const cli = fileURLToPath(new URL('../node_modules/@playwright/test/cli.js', import.meta.url));
 const cacheRoot = fileURLToPath(new URL('../node_modules/.cache/commerceos-e2e/', import.meta.url));
 await mkdir(cacheRoot, { recursive: true });
-const suites = ['checkout', 'admin', 'ui'];
+const suites = ['checkout', 'admin', 'ui', 'rails', 'account'];
+const allowedSuites = [...suites, 'audit'];
 const selected = process.argv
   .slice(2)
   .find((arg) => arg.startsWith('--suite='))
   ?.slice(8);
-if (selected && !suites.includes(selected)) throw new Error('Use --suite=checkout, admin or ui');
+if (selected && !allowedSuites.includes(selected))
+  throw new Error('Use --suite=checkout, admin, ui, rails, account or audit');
 const args = process.argv.slice(2).filter((arg) => !arg.startsWith('--suite='));
 for (const suite of (selected ? [selected] : suites).map((name) => `${name}.spec.ts`)) {
   const scratch = await mkdtemp(join(cacheRoot, 'run-'));

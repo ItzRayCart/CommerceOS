@@ -1,0 +1,142 @@
+{
+  "method": "AI-led simulated personas; isolated real Angular/Express/MongoDB, not human participant research",
+  "homeReadyMs": 2127,
+  "headings": ["The considered selection.", "Shop by category", "New arrivals", "Best sellers"],
+  "homeRequests": [
+    {
+      "url": "?featured=true&limit=4",
+      "rows": 4,
+      "total": 6,
+      "facets": false,
+      "elapsedMs": 538.627
+    },
+    {
+      "url": "?sort=-soldCount&limit=4",
+      "rows": 4,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 538.678
+    },
+    {
+      "url": "?sort=-createdAt&limit=4",
+      "rows": 4,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 540.353
+    }
+  ],
+  "homeCategories": 2,
+  "layouts": [
+    {
+      "width": 360,
+      "bodyWidth": 360,
+      "headline": "40px",
+      "grids": [
+        {
+          "width": 320,
+          "content": 320,
+          "overflow": "visible"
+        },
+        {
+          "width": 320,
+          "content": 320,
+          "overflow": "visible"
+        },
+        {
+          "width": 320,
+          "content": 320,
+          "overflow": "visible"
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "bodyWidth": 768,
+      "headline": "40px",
+      "grids": [
+        {
+          "width": 707,
+          "content": 707,
+          "overflow": "visible"
+        },
+        {
+          "width": 707,
+          "content": 707,
+          "overflow": "visible"
+        },
+        {
+          "width": 707,
+          "content": 707,
+          "overflow": "visible"
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "bodyWidth": 1024,
+      "headline": "46.08px",
+      "grids": [
+        {
+          "width": 942,
+          "content": 942,
+          "overflow": "visible"
+        },
+        {
+          "width": 942,
+          "content": 942,
+          "overflow": "visible"
+        },
+        {
+          "width": 942,
+          "content": 942,
+          "overflow": "visible"
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "bodyWidth": 1440,
+      "headline": "48px",
+      "grids": [
+        {
+          "width": 1248,
+          "content": 1248,
+          "overflow": "visible"
+        },
+        {
+          "width": 1248,
+          "content": 1248,
+          "overflow": "visible"
+        },
+        {
+          "width": 1248,
+          "content": 1248,
+          "overflow": "visible"
+        }
+      ]
+    }
+  ],
+  "guestCartWorks": true,
+  "inactiveStockExcluded": true,
+  "longTitleLayout": {
+    "page": 1037,
+    "viewport": 360,
+    "titleWidth": 1013,
+    "titleContent": 1013
+  },
+  "currencyFilter": {
+    "decimals": 0,
+    "entered": 500,
+    "expectedMinor": 500,
+    "actualMinor": 50000
+  },
+  "zeroMaximum": {
+    "entered": 0,
+    "expectedQuery": "0",
+    "actualQuery": null
+  },
+  "partialFailure": {
+    "globalError": 1,
+    "visibleCards": 0
+  }
+}

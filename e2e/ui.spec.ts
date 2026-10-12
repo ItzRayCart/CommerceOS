@@ -38,7 +38,11 @@ test('revamped storefront renders across breakpoints, supports guest shopping an
             )
             .toBe(true);
         }
-        await page.evaluate(() => window.scrollTo(0, 0));
+        await page.evaluate(() => {
+          for (const track of document.querySelectorAll('.rail__track'))
+            track.scrollTo({ left: 0, behavior: 'instant' });
+          window.scrollTo(0, 0);
+        });
         if (name === 'home' && width === 1440)
           await page.screenshot({ path: info.outputPath('home-hero-1440.png') });
         const file = info.outputPath(`${name}-${width}.png`);
@@ -55,6 +59,14 @@ test('revamped storefront renders across breakpoints, supports guest shopping an
   await sand.click();
   await expect(page).toHaveURL(/variant=HLD-003-SAN/);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(beforeVariant);
+  await expect(page.locator('.hero-image img')).toHaveAttribute('src', /fold-headphones-5\.svg$/);
+  await page.getByRole('button', { name: 'View image 1', exact: true }).click();
+  await expect(page.locator('.hero-image img')).toHaveAttribute('src', /fold-headphones-1\.svg$/);
+  await expect(page.getByRole('button', { name: 'View image 1', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+
   await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Shopping cart' })).toBeVisible();
   await page.getByRole('link', { name: 'View cart and totals' }).click();
@@ -65,7 +77,11 @@ test('revamped storefront renders across breakpoints, supports guest shopping an
     await expect
       .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
       .toBe(true);
-    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.evaluate(() => {
+      for (const track of document.querySelectorAll('.rail__track'))
+        track.scrollTo({ left: 0, behavior: 'instant' });
+      window.scrollTo(0, 0);
+    });
     if (width === 360 || width === 1440)
       await page.screenshot({ path: info.outputPath(`cart-${width}.png`), fullPage: true });
   }
@@ -77,5 +93,7 @@ test('revamped storefront renders across breakpoints, supports guest shopping an
   await expect(
     page.getByRole('heading', { name: 'Considered electronics', exact: true }),
   ).toBeVisible();
+  await expect(page.locator('main app-product-card').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'We could not load the store' })).toHaveCount(0);
   expect(errors).toEqual([]);
 });

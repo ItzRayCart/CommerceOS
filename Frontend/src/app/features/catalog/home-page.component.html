@@ -1,0 +1,116 @@
+<main>
+  <section class="home__hero">
+    <div class="home__hero-copy">
+      <span class="eyebrow">For the everyday</span>
+      <h1>{{ settings.data()?.store?.tagline || 'Considered essentials.' }}</h1>
+      <p>Thoughtful tech. Made for everyday life.</p>
+      <a class="home__hero-link" routerLink="/shop"
+        >Explore the collection <span aria-hidden="true">→</span></a
+      >
+    </div>
+    @if (hero(); as product) {
+      <a [routerLink]="['/products', product.slug]" class="home__hero-image"
+        ><img
+          [ngSrc]="product.primaryImage!.url"
+          [alt]="product.primaryImage!.alt"
+          width="1000"
+          height="800"
+          priority
+        /><span class="home__spotlight"
+          ><span
+            ><small>In the spotlight</small><strong>{{ product.name }}</strong></span
+          ><span
+            >{{ settings.formatMoney(product.priceFrom) }} <span aria-hidden="true">↗</span></span
+          ></span
+        ></a
+      >
+    } @else {
+      <div class="home__hero-image" aria-label="Featured selection">
+        @if (collections[0]!.loading()) {
+          <div
+            class="home__hero-placeholder skeleton"
+            role="status"
+            aria-label="Loading featured product"
+          ></div>
+        }
+      </div>
+    }
+  </section>
+  <div class="page-container">
+    @if (allFailed()) {
+      <section class="home__error" role="alert">
+        <h2>We could not load the store</h2>
+        <p>Check your connection and try again.</p>
+        <button type="button" (click)="load()">Retry</button>
+      </section>
+    }
+    @for (collection of collections; track collection.key) {
+      <app-product-rail
+        [id]="'home-' + collection.key"
+        [title]="collection.title"
+        [caption]="collection.caption"
+        [items]="collection.products()"
+        [loading]="collection.loading()"
+        [error]="collection.error()"
+        [total]="collection.meta()?.total"
+        [hasMore]="collection.meta()?.hasNext ?? false"
+        [query]="collection.query"
+        [badge]="collection.key === 'new' ? '' : collection.title"
+        (retry)="collection.retry()"
+        (loadMore)="collection.load(false)"
+      />
+      @if (collection.key === 'premium') {
+        <section class="home__section" aria-labelledby="categories-title">
+          <div class="home__section-heading">
+            <h2 id="categories-title">Find your category.</h2>
+          </div>
+          @if (categoryError()) {
+            <div role="alert">
+              <p>{{ categoryError() }}</p>
+              <button type="button" aria-label="Retry categories" (click)="loadCategories()">
+                Retry
+              </button>
+            </div>
+          }
+          @if (categoryLoading() && !categories().length) {
+            <div class="home__category-grid" role="status" aria-label="Loading categories">
+              @for (item of [1, 2, 3, 4, 5]; track item) {
+                <div class="home__card-skeleton skeleton"></div>
+              }
+            </div>
+          } @else if (categories().length) {
+            <div class="home__category-grid">
+              @for (category of categories(); track category.id) {
+                <a class="home__category" [routerLink]="['/shop', category.slug]">
+                  @if (category.image) {
+                    <img
+                      [ngSrc]="category.image"
+                      [alt]="category.name"
+                      width="600"
+                      height="480"
+                      loading="lazy"
+                    />
+                  }
+                  <span
+                    ><strong>{{ category.name }}</strong
+                    ><small>{{ category.productCount }} products</small></span
+                  ></a
+                >
+              }
+            </div>
+          } @else if (!categoryError()) {
+            <p>No categories yet. <a routerLink="/shop">Explore all products</a>.</p>
+          }
+        </section>
+      }
+    }
+    <section class="home__values" aria-label="Store benefits">
+      @for (value of settings.data()?.store?.valueProps ?? []; track value.title) {
+        <div>
+          <strong>{{ value.title }}</strong>
+          <p>{{ value.text }}</p>
+        </div>
+      }
+    </section>
+  </div>
+</main>

@@ -11,7 +11,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: 'http://localhost:4500',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     browserName: 'chromium',
@@ -21,17 +21,17 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `"${process.execPath}" --import tsx ../../e2e/fixture-server.ts`,
-      cwd: resolve(root, 'apps/api'),
+      command: `"${process.execPath}" --import tsx ../e2e/fixture-server.ts`,
+      cwd: resolve(root, 'Backend'),
       env: { TSX_TSCONFIG_PATH: 'tsconfig.json' },
-      url: 'http://127.0.0.1:4000/health',
+      url: 'http://127.0.0.1:4400/health',
       timeout: 180000,
       reuseExistingServer: false,
     },
     {
-      command: `"${process.execPath}" ../../node_modules/@angular/cli/bin/ng.js serve --host 127.0.0.1 --port 4200 --proxy-config proxy.conf.json`,
-      cwd: resolve(root, 'apps/web'),
-      url: 'http://localhost:4200',
+      command: `"${process.execPath}" ../node_modules/@angular/cli/bin/ng.js serve --host 127.0.0.1 --port 4500 --proxy-config ../e2e/proxy.conf.json`,
+      cwd: resolve(root, 'Frontend'),
+      url: 'http://localhost:4500',
       timeout: 180000,
       reuseExistingServer: false,
     },

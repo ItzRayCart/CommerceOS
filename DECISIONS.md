@@ -81,3 +81,13 @@ Browser suite scratch directories live under ignored `node_modules/.cache/commer
 ## 2026-10-07 - Free-form commit messages
 
 At the project owner's request, remove the Husky commit-msg hook that enforced Conventional Commits. Commit messages no longer require type prefixes. Pre-commit formatting and CI lint/build/test checks remain active. This user preference overrides the original specification's commit-message tooling requirement.
+
+## 2026-10-07 - Horizontal home collections, persona audit and folder organization
+
+- Save the full simulated-persona report and baseline artifacts before fixes; this is developer-led browser testing, not recruited human research. Compare official Apple/Bellroy/Samsung/Nothing page structures without claiming conversion metrics.
+- Add server-defined Premium/Hot/Best Selling selection rules using existing featured, createdAt, soldCount and active-variant stock fields. Premium is curated; Hot is recent/ordered/available; Best Selling ranks recorded units. No fabricated viewer counts, sales numbers or quality/price thresholds.
+- Use native CSS overflow/snap with keyboard and button controls, bounded eight-item initial pages, Load more and filtered View all. Keep partial collection failures local. Deduplicate only in-flight category calls so admin changes are not hidden behind a permanent cache.
+- Fix settings-aware minor-unit price filtering, zero maxima, valid long-title wrapping and duplicate keyboard stops on card image/title links. Enlarge the desktop hero to 64 px at the owner's explicit request, while preserving mobile readability and dynamic merchant tagline.
+- Move Angular to Frontend and Express to Backend at the owner's explicit request, overriding the specification's original apps/web and apps/api paths. Preserve npm workspaces, shared package, technologies, security and business layers. Update lock/links, TS/Jest/E2E/Docker/env/tool/documentation paths; do not call a directory rename a runtime optimization.
+- Put browser-upload fixtures inside owned scratch space and exclude Angular cache/coverage/uploads from Docker build context. Keep genuine development uploads intact.
+- Verification evidence and remaining Docker/Lighthouse/full release limitations belong in the persona report. No commit or push is performed.

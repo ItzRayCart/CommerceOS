@@ -11,9 +11,9 @@
     "types": ["node"],
     "baseUrl": "..",
     "paths": {
-      "@api/*": ["apps/api/src/*"],
+      "@api/*": ["Backend/src/*"],
       "@commerceos/shared": ["packages/shared/src/index.ts"]
     }
   },
-  "include": ["*.ts", "../apps/api/src/common/types/*.d.ts"]
+  "include": ["*.ts", "../Backend/src/common/types/*.d.ts"]
 }

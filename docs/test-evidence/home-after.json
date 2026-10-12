@@ -1,0 +1,85 @@
+{
+  "method": "AI-led simulated personas; isolated real Angular/Express/MongoDB, not human participant research",
+  "homeReadyMs": 2400,
+  "headings": ["Premium", "Find your category.", "Hot", "Best Selling", "New Arrivals"],
+  "homeRequests": [
+    {
+      "url": "?collection=premium&page=1&limit=8&includeFacets=false",
+      "rows": 6,
+      "total": 6,
+      "facets": false,
+      "elapsedMs": 456.768
+    },
+    {
+      "url": "?collection=hot&page=1&limit=8&includeFacets=false",
+      "rows": 8,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 457.024
+    },
+    {
+      "url": "?collection=best-selling&page=1&limit=8&includeFacets=false",
+      "rows": 8,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 456.648
+    },
+    {
+      "url": "?sort=-createdAt&page=1&limit=8&includeFacets=false",
+      "rows": 8,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 456.061
+    }
+  ],
+  "homeCategories": 1,
+  "layouts": [
+    {
+      "width": 360,
+      "bodyWidth": 360,
+      "headline": "40px",
+      "grids": []
+    },
+    {
+      "width": 768,
+      "bodyWidth": 768,
+      "headline": "40px",
+      "grids": []
+    },
+    {
+      "width": 1024,
+      "bodyWidth": 1024,
+      "headline": "51.2px",
+      "grids": []
+    },
+    {
+      "width": 1440,
+      "bodyWidth": 1440,
+      "headline": "64px",
+      "grids": []
+    }
+  ],
+  "guestCartWorks": true,
+  "inactiveStockExcluded": true,
+  "longTitleLayout": {
+    "page": 360,
+    "viewport": 360,
+    "titleWidth": 151,
+    "titleContent": 151
+  },
+  "currencyFilter": {
+    "decimals": 0,
+    "entered": 500,
+    "expectedMinor": 500,
+    "actualMinor": 500
+  },
+  "zeroMaximum": {
+    "entered": 0,
+    "expectedQuery": "0",
+    "actualQuery": "0"
+  },
+  "partialFailure": {
+    "globalError": 0,
+    "visibleCards": 24
+  }
+}

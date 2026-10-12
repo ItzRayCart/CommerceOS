@@ -1,0 +1,94 @@
+{
+  "method": "AI-led simulated personas; isolated real Angular/Express/MongoDB, not human participant research",
+  "homeReadyMs": 1606,
+  "headings": ["Premium", "Find your category.", "Hot", "Best Selling", "New Arrivals"],
+  "homeRequests": [
+    {
+      "url": "?collection=hot&page=1&limit=8&includeFacets=false",
+      "rows": 8,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 213.897
+    },
+    {
+      "url": "?collection=premium&page=1&limit=8&includeFacets=false",
+      "rows": 6,
+      "total": 6,
+      "facets": false,
+      "elapsedMs": 231.701
+    },
+    {
+      "url": "?collection=best-selling&page=1&limit=8&includeFacets=false",
+      "rows": 8,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 232.129
+    },
+    {
+      "url": "?sort=-createdAt&page=1&limit=8&includeFacets=false",
+      "rows": 8,
+      "total": 30,
+      "facets": false,
+      "elapsedMs": 234.95
+    }
+  ],
+  "homeCategories": 1,
+  "layouts": [
+    {
+      "width": 360,
+      "bodyWidth": 360,
+      "headline": "40px",
+      "grids": []
+    },
+    {
+      "width": 768,
+      "bodyWidth": 768,
+      "headline": "40px",
+      "grids": []
+    },
+    {
+      "width": 1024,
+      "bodyWidth": 1024,
+      "headline": "51.2px",
+      "grids": []
+    },
+    {
+      "width": 1440,
+      "bodyWidth": 1440,
+      "headline": "64px",
+      "grids": []
+    }
+  ],
+  "guestCartWorks": true,
+  "inactiveStockExcluded": true,
+  "longTitleLayout": {
+    "page": 360,
+    "viewport": 360,
+    "titleWidth": 151,
+    "titleContent": 151
+  },
+  "currencyFilter": {
+    "decimals": 0,
+    "entered": 500,
+    "expectedMinor": 500,
+    "actualMinor": 500
+  },
+  "initialCurrencyFilter": {
+    "queryMinor": 500,
+    "displayValue": "500"
+  },
+  "threeDecimalFilter": {
+    "entered": "1.234",
+    "decimals": 3,
+    "actualMinor": 1234
+  },
+  "zeroMaximum": {
+    "entered": 0,
+    "expectedQuery": "0",
+    "actualQuery": "0"
+  },
+  "partialFailure": {
+    "globalError": 0,
+    "visibleCards": 24
+  }
+}

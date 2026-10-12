@@ -5,7 +5,7 @@ Status as of 2026-10-03: foundation, authentication, storefront Batches A/B/C an
 ## Rules for every phase
 
 - [ ] Work in Section 12 order. Keep the repository runnable at each commit; use a phase branch, Conventional Commits, and a phase completion tag after its exit gate passes.
-- [ ] Keep TypeScript strict in `apps/api`, `apps/web`, and `packages/shared`; satisfy Section 9 naming, formatting, layering, and import rules.
+- [ ] Keep TypeScript strict in `Backend`, `Frontend`, and `packages/shared`; satisfy Section 9 naming, formatting, layering, and import rules.
 - [ ] For every new endpoint: strict Zod body/query/params validation, typed DTO mapping, standard success/error envelope, request ID, OpenAPI request/response/error schemas, and integration coverage.
 - [ ] For every business rule BR-01 through BR-15: at least one unit test; add integration and concurrency tests where the rule crosses documents or requests.
 - [ ] For every data screen: API-backed data, pagination for lists, skeleton loading, useful empty state, retryable error state, keyboard support, responsive layout, and URL-synced filters where specified.
@@ -17,7 +17,7 @@ Status as of 2026-10-03: foundation, authentication, storefront Batches A/B/C an
 
 Implementation sequence requested by the project owner:
 
-- [x] Establish npm workspaces at root for `apps/api`, `apps/web`, `packages/shared`; root scripts and lockfile (commit pending phase exit).
+- [x] Establish npm workspaces at root for `Backend`, `Frontend`, `packages/shared`; root scripts and lockfile (commit pending phase exit).
 - [x] Scaffold the Angular standalone app with storefront/admin lazy shells, initial design tokens, and typed `ApiClient`.
 - [x] Scaffold Express 4 API with `createApp()` separate from the listener, `/api/v1` routing, and module layout.
 - [x] Set `strict: true` in all three TypeScript projects; configure path aliases, ESLint and Prettier per Section 9.
@@ -122,3 +122,7 @@ Implementation sequence requested by the project owner:
 ## 2026-10-04 verification update
 
 The four requested admin blocks are implemented. Integration/browser tests verify publication, stock audits, COD payment/fulfilment, analytics and saved branding. API line coverage: 90.99%, above the previous baseline. Evidence: docs/ADMIN_REVIEW.md. Full phase exits remain open for remaining global gates and complete specification seed/reviews requirements; implementation checkmarks do not declare a release.
+
+## 2026-10-07 - Collections, persona review and folder relocation
+
+Home now exposes Premium/Hot/Best Selling through accessible paginated horizontal rails and filtered View all. Simulated shopper/merchant before/after evidence and confirmed fixes are in docs/USER_TEST_REPORT_2026-10-07.md. Core workspaces live in Frontend and Backend; shared DTOs remain in packages/shared. Strict lint/build, 78 API tests (91.07% lines), 23 Angular tests and five browser workflows passed. Docker/Lighthouse/full release gates remain open; a folder rename is organizational rather than a runtime-speed claim.

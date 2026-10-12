@@ -1,0 +1,138 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.rail {
+  margin: 3.5rem 0 4.5rem;
+  min-width: 0;
+}
+.rail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.rail__header > div:first-child {
+  min-width: 0;
+}
+.rail h2 {
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.rail__header p {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  margin: 0.6rem 0 0;
+}
+.rail__controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.rail__controls button {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+}
+.rail__previous app-icon {
+  transform: rotate(180deg);
+}
+.rail__track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(15rem, 25vw, 19rem);
+  gap: 1.4rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 0.25rem;
+  overscroll-behavior-x: contain;
+  padding: 0.35rem 0.25rem 1rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-muted) var(--color-border);
+}
+.rail__item {
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.rail__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.8rem;
+}
+.rail__footer > span {
+  color: var(--color-muted);
+}
+.rail__footer a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.rail__footer button,
+.rail__error button {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-border);
+}
+.rail__error {
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: var(--color-danger);
+}
+.rail__empty {
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.rail__skeletons {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(15rem, 25vw, 19rem);
+  gap: 1.4rem;
+  overflow: hidden;
+}
+.rail__skeletons > div {
+  height: 21rem;
+}
+.rail__controls button:disabled {
+  opacity: 0.4;
+}
+@media (max-width: 480px) {
+  .rail {
+    margin: 2.5rem 0 3rem;
+  }
+  .rail__track,
+  .rail__skeletons {
+    grid-auto-columns: 85%;
+    gap: 1rem;
+  }
+  .rail__header {
+    align-items: start;
+  }
+  .rail__header p {
+    font-size: 0.8rem;
+  }
+  .rail__footer {
+    gap: 0.75rem;
+  }
+}

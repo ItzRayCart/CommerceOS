@@ -1,0 +1,99 @@
+<section class="rail" [attr.aria-labelledby]="titleId()">
+  <header class="rail__header">
+    <div>
+      <h2 [id]="titleId()">{{ title() }}</h2>
+      <p>{{ caption() }}</p>
+    </div>
+    <div class="rail__controls" aria-label="Collection scrolling">
+      <button
+        type="button"
+        class="rail__previous"
+        [attr.aria-label]="'Previous ' + title() + ' products'"
+        [disabled]="!canPrevious() || !items().length"
+        (click)="move(-1)"
+      >
+        <app-icon name="arrow" />
+      </button>
+      <button
+        type="button"
+        [attr.aria-label]="'Next ' + title() + ' products'"
+        [disabled]="!canNext() || !items().length"
+        (click)="move(1)"
+      >
+        <app-icon name="arrow" />
+      </button>
+    </div>
+  </header>
+  <p class="sr-only" [id]="hintId()">
+    Swipe or scroll horizontally. When the collection is focused, use arrow keys, Home and End. View
+    all opens the full catalogue selection.
+  </p>
+  @if (error()) {
+    <div class="rail__error" role="alert">
+      <p>{{ error() }}</p>
+      <button
+        type="button"
+        [attr.aria-label]="'Retry ' + title()"
+        [disabled]="loading()"
+        (click)="retry.emit()"
+      >
+        Retry
+      </button>
+    </div>
+  }
+  @if (loading() && !items().length) {
+    <div class="rail__skeletons" role="status" [attr.aria-label]="'Loading ' + title()">
+      @for (item of [1, 2, 3, 4]; track item) {
+        <div class="skeleton"></div>
+      }
+    </div>
+  }
+  @if (items().length) {
+    <div
+      #track
+      class="rail__track"
+      role="list"
+      [attr.aria-label]="title() + ' products'"
+      [attr.aria-describedby]="hintId()"
+      tabindex="0"
+      (scroll)="measure()"
+      (keydown)="key($event)"
+    >
+      @for (product of items(); track product.id) {
+        <div class="rail__item" role="listitem">
+          <app-product-card
+            [product]="product"
+            [price]="settings.formatMoney(product.priceFrom)"
+            [comparePrice]="
+              product.compareAtFrom === null ? null : settings.formatMoney(product.compareAtFrom)
+            "
+            [badge]="badge()"
+          />
+        </div>
+      }
+    </div>
+  } @else if (!loading() && !error()) {
+    <div class="rail__empty">
+      <p>No products in this collection yet.</p>
+      <a routerLink="/shop">Explore all products →</a>
+    </div>
+  }
+  <footer class="rail__footer">
+    @if (total() !== undefined) {
+      <span role="status" aria-live="polite">{{ items().length }} of {{ total() }} items</span>
+    }
+    @if (hasMore()) {
+      <button
+        type="button"
+        [attr.aria-label]="'Load more ' + title() + ' products'"
+        [disabled]="loading()"
+        (click)="loadMore.emit()"
+      >
+        {{ loading() ? 'Loading…' : 'Load more' }}
+      </button>
+    }
+    <a routerLink="/shop" [queryParams]="query()" [attr.aria-label]="'View all ' + title()"
+      >View all <span aria-hidden="true">→</span></a
+    >
+  </footer>
+</section>

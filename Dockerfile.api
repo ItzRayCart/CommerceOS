@@ -1,11 +1,11 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-COPY apps/api/package.json apps/api/package.json
-COPY apps/web/package.json apps/web/package.json
+COPY Backend/package.json Backend/package.json
+COPY Frontend/package.json Frontend/package.json
 COPY packages/shared/package.json packages/shared/package.json
 RUN npm ci
-COPY apps/api apps/api
+COPY Backend Backend
 COPY packages/shared packages/shared
 RUN npm run build -w @commerceos/shared && npm run build -w @commerceos/api
 
@@ -13,8 +13,8 @@ FROM node:24-alpine
 WORKDIR /app
 ENV NODE_ENV=development
 COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/apps/api ./apps/api
+COPY --from=build /app/Backend ./Backend
 COPY --from=build /app/packages/shared ./packages/shared
-WORKDIR /app/apps/api
+WORKDIR /app/Backend
 EXPOSE 4000
 CMD ["node", "dist/server.js"]

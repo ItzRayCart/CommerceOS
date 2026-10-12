@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "workspaces": [
-    "apps/api",
-    "apps/web",
+    "Backend",
+    "Frontend",
     "packages/shared"
   ],
   "engines": {
@@ -23,7 +23,9 @@
     "seed:reset": "npm run seed:reset -w @commerceos/api",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
-    "prepare": "husky"
+    "prepare": "husky",
+    "seed:catalog": "npm run seed:catalog -w @commerceos/api",
+    "art:products": "node tools/generate-product-art.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",

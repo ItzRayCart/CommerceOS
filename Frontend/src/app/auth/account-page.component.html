@@ -1,0 +1,569 @@
+<main class="page-container account">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a routerLink="/">Home</a><span>/</span><span>My account</span>
+  </nav>
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Your everyday, organised</p>
+      <h1>My account<span>.</span></h1>
+      <p class="muted">Details, deliveries and everything you've chosen.</p>
+    </div>
+    <a class="shop-link" routerLink="/shop">Continue shopping <span aria-hidden="true">↗</span></a>
+  </header>
+  <div class="account-layout">
+    <aside class="account-sidebar" aria-label="Account navigation">
+      <div class="identity">
+        <span class="avatar" aria-hidden="true"
+          >{{ session.user()?.firstName?.charAt(0) }}{{ session.user()?.lastName?.charAt(0) }}</span
+        ><strong>{{ session.user()?.firstName }} {{ session.user()?.lastName }}</strong
+        ><span class="muted email">{{ session.user()?.email }}</span>
+      </div>
+      <nav>
+        <a
+          routerLink="/account"
+          [class.current]="tab() === 'profile'"
+          [attr.aria-current]="tab() === 'profile' ? 'page' : null"
+          >Personal details <span>01</span></a
+        ><a
+          routerLink="/account/addresses"
+          [class.current]="tab() === 'addresses'"
+          [attr.aria-current]="tab() === 'addresses' ? 'page' : null"
+          >Address book <span>02</span></a
+        ><a
+          routerLink="/account"
+          [queryParams]="{ tab: 'security' }"
+          [class.current]="tab() === 'security'"
+          [attr.aria-current]="tab() === 'security' ? 'page' : null"
+          >Sign-in & security <span>03</span></a
+        ><a routerLink="/account/orders">Your orders <span aria-hidden="true">↗</span></a>
+        @if (settings.data()?.features?.wishlist) {
+          <a routerLink="/wishlist">Wishlist <span aria-hidden="true">↗</span></a>
+        }
+      </nav>
+      <button class="sign-out" type="button" [disabled]="busy()" (click)="logout()">
+        Sign out
+      </button>
+    </aside>
+    <div class="account-content" [attr.aria-busy]="loading() || busy()">
+      @if (loading()) {
+        <div class="skeleton account-skeleton" role="status">
+          <span class="sr-only">Loading account…</span>
+        </div>
+      } @else if (loadError()) {
+        <section class="panel">
+          <h2>Let's try that again</h2>
+          <p role="alert">{{ loadError() }}</p>
+          <button (click)="load()">Retry</button>
+        </section>
+      } @else {
+        @if (notice()) {
+          <p class="feedback success" role="status">{{ notice() }}</p>
+        }
+        @if (actionError()) {
+          <p class="feedback error" role="alert">{{ actionError() }}</p>
+        }
+        @switch (tab()) {
+          @case ('addresses') {
+            <section class="panel">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Ready for your next delivery</p>
+                  <h2>Address book</h2>
+                  <p class="muted">Save a little time at checkout.</p>
+                </div>
+                <button
+                  type="button"
+                  [disabled]="busy() || addresses().length >= 10"
+                  (click)="openAddress()"
+                >
+                  Add address
+                </button>
+              </div>
+              @if (addresses().length === 0) {
+                <div class="empty">
+                  <h3>A home for your deliveries</h3>
+                  <p class="muted">
+                    Add your first address. You'll be able to select it at checkout.
+                  </p>
+                </div>
+              }
+              @if (addresses().length >= 10) {
+                <p class="muted">You've saved 10 addresses. Edit or remove one to add another.</p>
+              }
+              <div class="address-grid">
+                @for (saved of addresses(); track saved.id) {
+                  <article class="address-card">
+                    <div class="address-heading">
+                      <h3>{{ saved.label }}</h3>
+                      @if (saved.isDefault) {
+                        <span class="badge">Default</span>
+                      }
+                    </div>
+                    <p>
+                      <strong>{{ saved.fullName }}</strong
+                      ><br />{{ saved.line1 }}
+                      @if (saved.line2) {
+                        <br />{{ saved.line2 }}
+                      }
+                      <br />{{ saved.city }}, {{ saved.region }} {{ saved.postalCode }}<br />{{
+                        saved.country
+                      }}
+                    </p>
+                    <p class="muted">{{ saved.phone }}</p>
+                    <div class="address-actions">
+                      <button class="text-button" [disabled]="busy()" (click)="openAddress(saved)">
+                        Edit
+                      </button>
+                      @if (!saved.isDefault) {
+                        <button
+                          class="text-button"
+                          [disabled]="busy()"
+                          (click)="makeDefault(saved.id)"
+                        >
+                          Set as default
+                        </button>
+                      }
+                      <button
+                        class="text-button danger"
+                        [disabled]="busy()"
+                        (click)="
+                          pendingRemoval.set(saved); actionError.set(''); confirmRemove.showModal()
+                        "
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </article>
+                }
+              </div>
+              @if (addressFormOpen()) {
+                <form [formGroup]="address" (ngSubmit)="saveAddress()" class="address-form">
+                  <h3>{{ editingAddress() ? 'Edit address' : 'New address' }}</h3>
+                  <div class="form-grid">
+                    <div class="field">
+                      <label for="address-label">Address label</label
+                      ><input
+                        id="address-label"
+                        formControlName="label"
+                        type="text"
+                        autocomplete="off"
+                        [attr.aria-invalid]="invalid(address.controls.label)"
+                        aria-describedby="address-label-help"
+                      /><span
+                        id="address-label-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.label)"
+                        >{{
+                          invalid(address.controls.label)
+                            ? fieldMessage(address.controls.label, 'Enter address label.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field">
+                      <label for="address-fullName">Full name</label
+                      ><input
+                        id="address-fullName"
+                        formControlName="fullName"
+                        type="text"
+                        autocomplete="name"
+                        [attr.aria-invalid]="invalid(address.controls.fullName)"
+                        aria-describedby="address-fullName-help"
+                      /><span
+                        id="address-fullName-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.fullName)"
+                        >{{
+                          invalid(address.controls.fullName)
+                            ? fieldMessage(address.controls.fullName, 'Enter full name.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field wide">
+                      <label for="address-line1">Address line 1</label
+                      ><input
+                        id="address-line1"
+                        formControlName="line1"
+                        type="text"
+                        autocomplete="address-line1"
+                        [attr.aria-invalid]="invalid(address.controls.line1)"
+                        aria-describedby="address-line1-help"
+                      /><span
+                        id="address-line1-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.line1)"
+                        >{{
+                          invalid(address.controls.line1)
+                            ? fieldMessage(address.controls.line1, 'Enter address line 1.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field wide">
+                      <label for="address-line2">Address line 2 (optional)</label
+                      ><input
+                        id="address-line2"
+                        formControlName="line2"
+                        type="text"
+                        autocomplete="address-line2"
+                        [attr.aria-invalid]="invalid(address.controls.line2)"
+                        aria-describedby="address-line2-help"
+                      /><span
+                        id="address-line2-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.line2)"
+                        >{{
+                          invalid(address.controls.line2)
+                            ? fieldMessage(
+                                address.controls.line2,
+                                'Enter address line 2 (optional).'
+                              )
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field">
+                      <label for="address-city">City</label
+                      ><input
+                        id="address-city"
+                        formControlName="city"
+                        type="text"
+                        autocomplete="address-level2"
+                        [attr.aria-invalid]="invalid(address.controls.city)"
+                        aria-describedby="address-city-help"
+                      /><span
+                        id="address-city-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.city)"
+                        >{{
+                          invalid(address.controls.city)
+                            ? fieldMessage(address.controls.city, 'Enter city.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field">
+                      <label for="address-region">State / region</label
+                      ><input
+                        id="address-region"
+                        formControlName="region"
+                        type="text"
+                        autocomplete="address-level1"
+                        [attr.aria-invalid]="invalid(address.controls.region)"
+                        aria-describedby="address-region-help"
+                      /><span
+                        id="address-region-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.region)"
+                        >{{
+                          invalid(address.controls.region)
+                            ? fieldMessage(address.controls.region, 'Enter state / region.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field">
+                      <label for="address-postalCode">Postal code</label
+                      ><input
+                        id="address-postalCode"
+                        formControlName="postalCode"
+                        type="text"
+                        autocomplete="postal-code"
+                        [attr.aria-invalid]="invalid(address.controls.postalCode)"
+                        aria-describedby="address-postalCode-help"
+                      /><span
+                        id="address-postalCode-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.postalCode)"
+                        >{{
+                          invalid(address.controls.postalCode)
+                            ? fieldMessage(address.controls.postalCode, 'Enter postal code.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                    <div class="field">
+                      <label for="address-country">Country code</label
+                      ><input
+                        id="address-country"
+                        formControlName="country"
+                        type="text"
+                        autocomplete="country"
+                        [attr.aria-invalid]="invalid(address.controls.country)"
+                        aria-describedby="address-country-help"
+                      /><span
+                        id="address-country-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.country)"
+                        >{{
+                          invalid(address.controls.country)
+                            ? fieldMessage(address.controls.country, 'Enter country code.')
+                            : 'Two-letter code, for example US or PK.'
+                        }}</span
+                      >
+                    </div>
+                    <div class="field">
+                      <label for="address-phone">Delivery phone</label
+                      ><input
+                        id="address-phone"
+                        formControlName="phone"
+                        type="tel"
+                        autocomplete="tel"
+                        [attr.aria-invalid]="invalid(address.controls.phone)"
+                        aria-describedby="address-phone-help"
+                      /><span
+                        id="address-phone-help"
+                        class="field-help"
+                        [class.field-error]="invalid(address.controls.phone)"
+                        >{{
+                          invalid(address.controls.phone)
+                            ? fieldMessage(address.controls.phone, 'Enter delivery phone.')
+                            : ''
+                        }}</span
+                      >
+                    </div>
+                  </div>
+                  <label class="checkbox"
+                    ><input type="checkbox" formControlName="isDefault" />Use as my default
+                    address</label
+                  >
+                  <div class="form-footer">
+                    <button type="submit" [disabled]="busy()">
+                      {{ busy() ? 'Saving…' : 'Save address' }}</button
+                    ><button
+                      type="button"
+                      class="secondary"
+                      [disabled]="busy()"
+                      (click)="addressFormOpen.set(false)"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              }
+            </section>
+          }
+          @case ('security') {
+            <section class="panel">
+              <p class="eyebrow">Keep it yours</p>
+              <h2>Sign-in & security</h2>
+              <p class="muted">You'll need to sign in again after changing your password.</p>
+              <form [formGroup]="password" (ngSubmit)="savePassword()">
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="password-currentPassword">Current password</label
+                    ><input
+                      id="password-currentPassword"
+                      formControlName="currentPassword"
+                      type="password"
+                      autocomplete="current-password"
+                      [attr.aria-invalid]="invalid(password.controls.currentPassword)"
+                      aria-describedby="password-currentPassword-help"
+                    /><span
+                      id="password-currentPassword-help"
+                      class="field-help"
+                      [class.field-error]="invalid(password.controls.currentPassword)"
+                      >{{
+                        invalid(password.controls.currentPassword)
+                          ? fieldMessage(
+                              password.controls.currentPassword,
+                              'Enter current password.'
+                            )
+                          : ''
+                      }}</span
+                    >
+                  </div>
+                  <div class="field">
+                    <label for="password-newPassword">New password</label
+                    ><input
+                      id="password-newPassword"
+                      formControlName="newPassword"
+                      type="password"
+                      autocomplete="new-password"
+                      [attr.aria-invalid]="invalid(password.controls.newPassword)"
+                      aria-describedby="password-newPassword-help"
+                    /><span
+                      id="password-newPassword-help"
+                      class="field-help"
+                      [class.field-error]="invalid(password.controls.newPassword)"
+                      >{{
+                        invalid(password.controls.newPassword)
+                          ? fieldMessage(
+                              password.controls.newPassword,
+                              'Use 8–128 characters with uppercase, lowercase and a number.'
+                            )
+                          : ''
+                      }}</span
+                    >
+                  </div>
+                  <div class="field">
+                    <label for="password-confirmPassword">Confirm new password</label
+                    ><input
+                      id="password-confirmPassword"
+                      formControlName="confirmPassword"
+                      type="password"
+                      autocomplete="new-password"
+                      [attr.aria-invalid]="invalid(password.controls.confirmPassword)"
+                      aria-describedby="password-confirmPassword-help"
+                    /><span
+                      id="password-confirmPassword-help"
+                      class="field-help"
+                      [class.field-error]="invalid(password.controls.confirmPassword)"
+                      >{{
+                        invalid(password.controls.confirmPassword)
+                          ? fieldMessage(
+                              password.controls.confirmPassword,
+                              'Enter confirm new password.'
+                            )
+                          : ''
+                      }}</span
+                    >
+                  </div>
+                </div>
+                <p class="field-help">
+                  Use 8–128 characters with uppercase, lowercase and a number.
+                </p>
+                @if (password.hasError('mismatch') && password.controls.confirmPassword.touched) {
+                  <p class="field-error" role="alert">The passwords don't match.</p>
+                }
+                <div class="form-footer">
+                  <button type="submit" [disabled]="busy()">
+                    {{ busy() ? 'Updating…' : 'Update password' }}
+                  </button>
+                </div>
+              </form>
+            </section>
+          }
+          @default {
+            <section class="panel">
+              <p class="eyebrow">Good to see you, {{ session.user()?.firstName }}</p>
+              <h2>Personal details</h2>
+              <p class="muted">Keep your contact details up to date.</p>
+              <div class="email-row">
+                <div>
+                  <span class="field-label">Email address</span>
+                  <p>{{ session.user()?.email }}</p>
+                </div>
+                <span class="badge">Sign-in email</span>
+              </div>
+              <form [formGroup]="profile" (ngSubmit)="saveProfile()">
+                <div class="form-grid">
+                  <div class="field">
+                    <label for="profile-firstName">First name</label
+                    ><input
+                      id="profile-firstName"
+                      formControlName="firstName"
+                      type="text"
+                      autocomplete="given-name"
+                      [attr.aria-invalid]="invalid(profile.controls.firstName)"
+                      aria-describedby="profile-firstName-help"
+                    /><span
+                      id="profile-firstName-help"
+                      class="field-help"
+                      [class.field-error]="invalid(profile.controls.firstName)"
+                      >{{
+                        invalid(profile.controls.firstName)
+                          ? fieldMessage(profile.controls.firstName, 'Enter first name.')
+                          : ''
+                      }}</span
+                    >
+                  </div>
+                  <div class="field">
+                    <label for="profile-lastName">Last name</label
+                    ><input
+                      id="profile-lastName"
+                      formControlName="lastName"
+                      type="text"
+                      autocomplete="family-name"
+                      [attr.aria-invalid]="invalid(profile.controls.lastName)"
+                      aria-describedby="profile-lastName-help"
+                    /><span
+                      id="profile-lastName-help"
+                      class="field-help"
+                      [class.field-error]="invalid(profile.controls.lastName)"
+                      >{{
+                        invalid(profile.controls.lastName)
+                          ? fieldMessage(profile.controls.lastName, 'Enter last name.')
+                          : ''
+                      }}</span
+                    >
+                  </div>
+                  <div class="field">
+                    <label for="profile-phone">Phone number</label
+                    ><input
+                      id="profile-phone"
+                      formControlName="phone"
+                      type="tel"
+                      autocomplete="tel"
+                      [attr.aria-invalid]="invalid(profile.controls.phone)"
+                      aria-describedby="profile-phone-help"
+                    /><span
+                      id="profile-phone-help"
+                      class="field-help"
+                      [class.field-error]="invalid(profile.controls.phone)"
+                      >{{
+                        invalid(profile.controls.phone)
+                          ? fieldMessage(
+                              profile.controls.phone,
+                              'Use 7–15 digits, with an optional + country code.'
+                            )
+                          : 'Optional. Include country code, without spaces.'
+                      }}</span
+                    >
+                  </div>
+                </div>
+                <div class="form-footer">
+                  <button type="submit" [disabled]="busy()">
+                    {{ busy() ? 'Saving…' : 'Save changes' }}</button
+                  ><span class="muted"
+                    >Your details are only used for your account and orders.</span
+                  >
+                </div>
+              </form>
+            </section>
+            <div class="quick-links">
+              <a routerLink="/account/orders"
+                ><p class="eyebrow">From checkout to your door</p>
+                <h3>Your orders <span aria-hidden="true">↗</span></h3>
+                <p class="muted">Track deliveries and revisit your purchases.</p></a
+              >
+              @if (settings.data()?.features?.wishlist) {
+                <a routerLink="/wishlist"
+                  ><p class="eyebrow">A little inspiration</p>
+                  <h3>Your wishlist <span aria-hidden="true">↗</span></h3>
+                  <p class="muted">The things you've saved for later.</p></a
+                >
+              }
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+  <dialog
+    #confirmRemove
+    aria-labelledby="remove-title"
+    (close)="pendingRemoval.set(null)"
+    (cancel)="busy() ? $event.preventDefault() : pendingRemoval.set(null)"
+  >
+    <h2 id="remove-title">Remove {{ pendingRemoval()?.label }}?</h2>
+    <p>This address will no longer be available at checkout.</p>
+    @if (pendingRemoval() && actionError()) {
+      <p role="alert">{{ actionError() }}</p>
+    }
+    <div class="form-footer">
+      <button
+        type="button"
+        class="secondary"
+        autofocus
+        [disabled]="busy()"
+        (click)="confirmRemove.close()"
+      >
+        Keep address</button
+      ><button type="button" [disabled]="busy()" (click)="removeAddress(confirmRemove)">
+        {{ busy() ? 'Removing…' : 'Remove address' }}
+      </button>
+    </div>
+  </dialog>
+</main>
